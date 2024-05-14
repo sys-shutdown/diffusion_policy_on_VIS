@@ -8,8 +8,8 @@ checkpoint:
     mode: max
     monitor_key: test_mean_score
 dataloader:
-  batch_size: 16
-  num_workers: 8
+  batch_size: 8
+  num_workers: 2
   persistent_workers: false
   pin_memory: true
   shuffle: true
@@ -119,11 +119,11 @@ task:
   dataset:
     _target_: diffusion_policy.dataset.vis_image_dataset.VISImageDataset
     horizon: 16
-    max_train_episodes: 50
+    max_train_episodes: null
     pad_after: 7
     pad_before: 1
     seed: 42
-    val_ratio: 0.02
+    val_ratio: 0.1
     zarr_path: ../Data/TrainData/vis_demo.zarr
   env_runner:
     _target_: diffusion_policy.env_runner.vis_image_runner.VISImageRunner
@@ -132,9 +132,9 @@ task:
     n_action_steps: 8
     n_envs: null
     n_obs_steps: 8
-    n_test: 6
+    n_test: 2
     n_test_vis: 2
-    n_train: 2
+    n_train: 1
     n_train_vis: 1
     past_action: false
     test_start_seed: 1000
@@ -180,8 +180,8 @@ training:
   use_ema: true
   val_every: 1
 val_dataloader:
-  batch_size: 16
-  num_workers: 8
+  batch_size: 8
+  num_workers: 2
   persistent_workers: false
   pin_memory: true
   shuffle: false
