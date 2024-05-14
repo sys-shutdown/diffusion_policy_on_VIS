@@ -14,7 +14,6 @@ import SofaRuntime
 import pygame
 from OpenGL.GL import *
 from OpenGL.GLU import *
-import glfw
 
 from diffusion_policy.env.vascular.VISToolbox import getReward, startCmd
 from diffusion_policy.env.vascular.VISScene import createScene
