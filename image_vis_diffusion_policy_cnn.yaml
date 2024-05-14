@@ -8,8 +8,8 @@ checkpoint:
     mode: max
     monitor_key: test_mean_score
 dataloader:
-  batch_size: 8
-  num_workers: 2
+  batch_size: 64
+  num_workers: 8
   persistent_workers: false
   pin_memory: true
   shuffle: true
@@ -58,7 +58,7 @@ policy:
   crop_shape:
   - 280
   - 140
-  diffusion_step_embed_dim: 128
+  diffusion_step_embed_dim: 512
   down_dims:
   - 512
   - 1024
@@ -132,10 +132,10 @@ task:
     n_action_steps: 8
     n_envs: null
     n_obs_steps: 8
-    n_test: 2
-    n_test_vis: 2
-    n_train: 1
-    n_train_vis: 1
+    n_test: 50
+    n_test_vis: 4
+    n_train: 6
+    n_train_vis: 2
     past_action: false
     test_start_seed: 1000
     train_start_seed: 0
@@ -164,7 +164,7 @@ task:
 task_name: vis_image
 training:
   checkpoint_every: 10
-  debug: false
+  debug: true
   device: cuda:0
   gradient_accumulate_every: 1
   lr_scheduler: cosine
@@ -180,8 +180,8 @@ training:
   use_ema: true
   val_every: 1
 val_dataloader:
-  batch_size: 8
-  num_workers: 2
+  batch_size: 64
+  num_workers: 8
   persistent_workers: false
   pin_memory: true
   shuffle: false
