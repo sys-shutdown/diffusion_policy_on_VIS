@@ -56,7 +56,7 @@ class VISEnv(gym.Env):
                       "rzRange":[-15,15],
                       "insertRange":[0,80],
                       "orthoScale":0.4,
-                      "render_mode":"human",
+                      "render_mode":"rgb_array",
                       }
 
     def __init__(self,config=None,randInit=False):

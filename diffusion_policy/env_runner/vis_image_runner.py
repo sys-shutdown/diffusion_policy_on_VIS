@@ -65,7 +65,7 @@ class VISImageRunner(BaseImageRunner):
             pygame.display.init()
             return MultiStepWrapper(
                 VideoRecordingWrapper(
-                    VISEnv(),
+                    VISEnv(randInit=True),
                     video_recoder=VideoRecorder.create_h264(
                         fps=fps,
                         codec='h264',
