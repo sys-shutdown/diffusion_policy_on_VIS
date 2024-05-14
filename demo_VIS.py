@@ -24,8 +24,8 @@ if __name__ == '__main__':
     action = multiprocessing.Array("d",[0.0,0.0])
     running = multiprocessing.Value("b",1)
     env_name = "vis-v0"
-    episodes = 10
-    env = VISEnv()
+    start_seed = 0
+    env = VISEnv(randInit=True)
 
     print("Start env ", env_name)
 
@@ -35,7 +35,7 @@ if __name__ == '__main__':
     p1 = multiprocessing.Process(target=readInput,args=(action,running))
     p1.start()
 
-    output = "data/vis_demo.zarr"
+    output = "../Data/TrainData/vis_demo.zarr"
     replay_buffer = ReplayBuffer.create_from_path(output, mode='a')
 
 
@@ -43,16 +43,16 @@ if __name__ == '__main__':
     
     while True:
         episode = list()
-        seed = replay_buffer.n_episodes
+        seed = start_seed+replay_buffer.n_episodes
         print(f'starting seed {seed}')
         env.seed(seed)
-
         control_start = False
         retry = False
         done = False
         env.reset()
         env.render()
         total_reward = 0
+        step_idx = 0
         while not done:
             for event in pygame.event.get():
                 if event.type == pygame.KEYDOWN:
@@ -67,13 +67,16 @@ if __name__ == '__main__':
                 break
 
             act = np.array([action[0],action[1]])
-            # print(act)
+            
             if control_start is False:
                 if abs(act[0])>start_threshold or abs(act[1])>start_threshold:
                     control_start = True
 
+            
             if control_start:
-                state, reward, done, info = env.step(act,render_mode="human")
+                state, reward, done, info = env.step(act)
+                print(f'step: {step_idx},\t action: {act}')
+                step_idx+=1
                 total_reward+=reward
                 data = {
                     'image1': state['image1'],

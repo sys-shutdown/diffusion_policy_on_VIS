@@ -92,6 +92,10 @@ class RewardShaper(Sofa.Core.Controller):
         self.goal_pos = None
         if kwargs["goalPos"]:
             self.goal_pos = kwargs["goalPos"]
+        self.distThreshold = 1000
+        if kwargs["distThreshold"]:
+            self.distThreshold = kwargs["distThreshold"]
+
 
         self.init_dist = None
         self.prev_dist = None
@@ -110,8 +114,8 @@ class RewardShaper(Sofa.Core.Controller):
         """
         tip = self.root.InstrumentCombined.VisuGuide.Quads.position[-1]
         current_dist = np.linalg.norm(np.array(tip)-np.array(self.goal_pos))
-
-        return -current_dist, current_dist
+        reward = np.clip((self.distThreshold-current_dist)/self.distThreshold,0,1)
+        return reward, current_dist
 
     def update(self):
         """Update function.
@@ -259,7 +263,7 @@ def getReward(root):
     reward, cost = root.Reward.getReward()
 
     if cost <= 10.0:
-        return True, 500
+        return True, 1.0
 
     return False, reward
 

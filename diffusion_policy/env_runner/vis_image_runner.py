@@ -250,7 +250,7 @@ class VISImageRunner(BaseImageRunner):
         for i in range(n_inits):
             seed = self.env_seeds[i]
             prefix = self.env_prefixs[i]
-            max_reward = np.sum(all_rewards[i])
+            max_reward = np.max(all_rewards[i])
             max_rewards[prefix].append(max_reward)
             log_data[prefix+f'sim_max_reward_{seed}'] = max_reward
 

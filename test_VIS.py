@@ -26,8 +26,8 @@ if __name__ == '__main__':
     env_name = "vis-v0"
     episodes = 10
     config = {
-        "display_size": (1600, 1600),
-        "orthoScale":0.1,
+        "display_size": (800, 800),
+        "orthoScale":0.2,
         "render_mode":"human",
     }
     env = VISEnv(config,randInit=True)
@@ -63,9 +63,10 @@ if __name__ == '__main__':
             #     break
 
             act = np.array([action[0],action[1]])
-            print(act)
+            # print(act)
 
             state, reward, done, info = env.step(act)
+            print(reward)
             total_reward+=reward
 
 

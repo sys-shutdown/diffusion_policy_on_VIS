@@ -23,6 +23,7 @@ def createScene(root,
                         "rotZ": 0,
                         "insertion": 0,
                         "zFar":4000,
+                        "distThreshold":500,
                         "dt": 0.01},
                 mode='simu_and_visu'):
     
@@ -183,7 +184,7 @@ def createScene(root,
 
     # # SofaGym Env Toolbox
     root.addObject(StateInitializer(name="StateInitializer",rootNode=root))
-    root.addObject(RewardShaper(name="Reward", rootNode=root, goalPos=config['goalPos']))
+    root.addObject(RewardShaper(name="Reward", rootNode=root, goalPos=config['goalPos'], distThreshold=config['distThreshold']))
     root.addObject(GoalSetter(name="GoalSetter", rootNode=root, goal=goal, goalPos=config['goalPos']))
 
 

@@ -95,10 +95,10 @@ def test():
     import random
     import os
     import cv2
-    zarr_path = os.path.expanduser('~/data/Code/diffusion_policy/data/vis_demo.zarr')
-    dataset = VISImageDataset(zarr_path, horizon=32)
+    zarr_path = os.path.expanduser('../TrainData/vis_demo.zarr')
+    dataset = VISImageDataset(zarr_path, horizon=16)
     for j in range(200):
-        data = dataset.__getitem__(random.randint(0,4000))
+        data = dataset.__getitem__(random.randint(0,dataset.__len__()-1))
         print(data['action'])
         for i in range(len(data['obs']['image1'])):
             img = np.concatenate([np.moveaxis(data['obs']['image1'][i].numpy(),0,-1),np.moveaxis(data['obs']['image2'][i].numpy(),0,-1)],axis=1)
