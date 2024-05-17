@@ -13,8 +13,8 @@ def readInput(action,running):
     if success:
         while running.value==1:
             state = pyspacemouse.read()
-            action[0] = -state.pitch*5
-            action[1] = state.yaw*5
+            action[0] = -state.pitch*5.0
+            action[1] = state.yaw*5.0
             time.sleep(0.01)
 
 
@@ -26,8 +26,8 @@ if __name__ == '__main__':
     env_name = "vis-v0"
     episodes = 10
     config = {
-        "display_size": (800, 800),
-        "orthoScale":0.2,
+        "display_size": (150, 300),
+        "orthoScale":0.6,
         "render_mode":"human",
     }
     env = VISEnv(config,randInit=True)
@@ -66,7 +66,7 @@ if __name__ == '__main__':
             # print(act)
 
             state, reward, done, info = env.step(act)
-            print(reward)
+            print(state['controllerState'])
             total_reward+=reward
 
 

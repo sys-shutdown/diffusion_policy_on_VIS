@@ -23,7 +23,7 @@ class VISImageDataset(BaseImageDataset):
         
         super().__init__()
         self.replay_buffer = ReplayBuffer.copy_from_path(
-            zarr_path, keys=['image1', 'image2', 'action'])
+            zarr_path, keys=['image1', 'image2', 'controllerState','action'])
         val_mask = get_val_mask(
             n_episodes=self.replay_buffer.n_episodes, 
             val_ratio=val_ratio,
@@ -60,6 +60,7 @@ class VISImageDataset(BaseImageDataset):
     def get_normalizer(self, mode='limits', **kwargs):
         data = {
             'action': self.replay_buffer['action'],
+            'controllerState': self.replay_buffer['controllerState']
         }
         normalizer = LinearNormalizer()
         normalizer.fit(data=data, last_n_dims=1, mode=mode, **kwargs)
@@ -74,11 +75,12 @@ class VISImageDataset(BaseImageDataset):
         
         image1 = np.moveaxis(sample['image1'],-1,1)/255
         image2 = np.moveaxis(sample['image2'],-1,1)/255
-
+        controllerState = sample['controllerState'].astype(np.float32)
         data = {
             'obs': {
                 'image1': image1, # T, 3, 400, 200
                 'image2': image2, # T, 3, 400, 200
+                'controllerState': controllerState, #T, 4
             },
             'action': sample['action'].astype(np.float32) # T, 2
         }
@@ -95,11 +97,11 @@ def test():
     import random
     import os
     import cv2
-    zarr_path = os.path.expanduser('../TrainData/vis_demo.zarr')
+    zarr_path = os.path.expanduser('../Data/TrainData/vis_demo2.zarr')
     dataset = VISImageDataset(zarr_path, horizon=16)
     for j in range(200):
         data = dataset.__getitem__(random.randint(0,dataset.__len__()-1))
-        print(data['action'])
+        print(data['obs']['controllerState'])
         for i in range(len(data['obs']['image1'])):
             img = np.concatenate([np.moveaxis(data['obs']['image1'][i].numpy(),0,-1),np.moveaxis(data['obs']['image2'][i].numpy(),0,-1)],axis=1)
             cv2.imshow('1',img)

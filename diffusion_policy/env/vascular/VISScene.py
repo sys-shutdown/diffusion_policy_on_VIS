@@ -12,7 +12,7 @@ def add_goal_node(root):
     goal = root.addChild("Goal")
     goal.addObject('VisualStyle', displayFlags="showCollisionModels")
     goal_mo = goal.addObject('MechanicalObject', name='GoalMO', showObject=True, drawMode="1", showObjectScale=5.0,
-                             showColor=[0, 1, 0, 0.5], position=[-5.0, 250.0, 50.0])
+                             showColor=[0, 1, 0, 0.5], position=[-60.0,260.0,47.0])
     return goal
 
 def createScene(root,

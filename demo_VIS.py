@@ -21,6 +21,7 @@ def readInput(action,running):
 
 if __name__ == '__main__':
 
+    np.set_printoptions(precision=2)
     action = multiprocessing.Array("d",[0.0,0.0])
     running = multiprocessing.Value("b",1)
     env_name = "vis-v0"
@@ -29,13 +30,13 @@ if __name__ == '__main__':
 
     print("Start env ", env_name)
 
-    env.configure({"render":1})
+    env.configure({"render_mode":"human"})
     env.reset()
 
     p1 = multiprocessing.Process(target=readInput,args=(action,running))
     p1.start()
 
-    output = "../Data/TrainData/vis_demo.zarr"
+    output = "../Data/TrainData/vis_demo2.zarr"
     replay_buffer = ReplayBuffer.create_from_path(output, mode='a')
 
 
@@ -75,12 +76,13 @@ if __name__ == '__main__':
             
             if control_start:
                 state, reward, done, info = env.step(act)
-                print(f'step: {step_idx},\t action: {act}')
+                print(f'step: {step_idx},\t action: {act},\t state: {state["controllerState"]}')
                 step_idx+=1
                 total_reward+=reward
                 data = {
                     'image1': state['image1'],
                     'image2': state['image2'],
+                    'controllerState': state['controllerState'],
                     'action': np.float32(act),
                 }
                 episode.append(data)

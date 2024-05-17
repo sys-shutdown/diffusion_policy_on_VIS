@@ -15,7 +15,7 @@ import pygame
 from OpenGL.GL import *
 from OpenGL.GLU import *
 
-from diffusion_policy.env.vascular.VISToolbox import getReward, startCmd
+from diffusion_policy.env.vascular.VISToolbox import getReward, startCmd, get_ircontroller_state
 from diffusion_policy.env.vascular.VISScene import createScene
 
 class VISEnv(gym.Env):
@@ -24,8 +24,9 @@ class VISEnv(gym.Env):
     metadata = {'render.modes': ['human', 'rgb_array','dummy']}
     DEFAULT_CONFIG = {"scene": "VIS",
                       "deterministic": True,
-                      "source": [[300, 150, -300],[300, 150, 300]],
-                      "target": [[0, 150, 0],[0, 150, 0]],
+                      #"source": [[300, 150, -300],[300, 150, 300]],
+                      "source": [[250, 150, -300],[250, 150, 300]],
+                      "target": [[0, 150, 0],[-50, 150, 0]],
                       'goalPos':[-5.0, 250.0, 50.0],
                       "rotY": 0,
                       "rotZ": 0,
@@ -50,7 +51,7 @@ class VISEnv(gym.Env):
                       "scale": 10,
                       "rotation": [0.0, 0.0, 0.0],
                       "translation": [0.0, 0.0, 0.0],
-                      "goalList": [[-5.0, 250.0, 50.0]],
+                      "goalList": [[-60.0,260.0,47.0],[-5.0, 250.0, 50.0]],
                       "ryRange":[-15,15],
                       "rzRange":[-15,15],
                       "insertRange":[0,80],
@@ -87,7 +88,13 @@ class VISEnv(gym.Env):
                     high=1,
                     shape=(3,self.config["display_size"][0],self.config["display_size"][1]),
                     dtype=np.float32
-                )
+                ),
+            'controllerState':spaces.Box(
+                    low=np.array([0,-100,0,-100], dtype=np.float64),
+                    high=np.array([400,100,400,100], dtype=np.float64),
+                    shape=(4,),
+                    dtype=np.float64
+            ),  
         })
         self.screen = None
         self.render_cache = None
@@ -123,9 +130,12 @@ class VISEnv(gym.Env):
         if(mode=="dummy"):
             return dict()
         image = self._render_frame(mode)
+        controllerState = np.array(get_ircontroller_state(self.root.InstrumentCombined,0)+get_ircontroller_state(self.root.InstrumentCombined,1))
+
         obs = {
             'image1':image[:,0:self.surface_size[0],:],
             'image2':image[:,self.surface_size[0]:,:],
+            'controllerState':controllerState
         }
         # cv2.imshow("1",obs['image1'])
         # cv2.imshow("2",obs['image2'])
@@ -216,7 +226,7 @@ class VISEnv(gym.Env):
         if self.randInit:
             rs = np.random.RandomState(seed=self._seed)
             config = dict()
-            config["goal"] = self.config["goalList"][0]
+            config["goalPos"] = self.config["goalList"][0]
             config["rotY"] = rs.randint(*self.config["ryRange"])
             config["rotZ"] = rs.randint(*self.config["rzRange"])
             config["insertion"] = rs.randint(*self.config["insertRange"])

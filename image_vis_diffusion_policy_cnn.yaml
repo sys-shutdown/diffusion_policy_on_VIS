@@ -8,12 +8,12 @@ checkpoint:
     mode: max
     monitor_key: test_mean_score
 dataloader:
-  batch_size: 64
-  num_workers: 8
+  batch_size: 1
+  num_workers: 1
   persistent_workers: false
   pin_memory: true
   shuffle: true
-dataset_obs_steps: 2
+dataset_obs_steps: 8
 ema:
   _target_: diffusion_policy.model.diffusion.ema_model.EMAModel
   inv_gamma: 1.0
@@ -28,7 +28,7 @@ logging:
   group: null
   id: null
   mode: online
-  name: 2024.05.14_train_diffusion_unet_hybrid_vis_image
+  name: 2024.05.17_train_diffusion_unet_hybrid_vis_image
   project: vis_diffusion_policy
   resume: true
   tags:
@@ -40,7 +40,7 @@ multi_run:
   wandb_name_base: 2024.05.14_train_diffusion_unet_hybrid_vis_image
 n_action_steps: 8
 n_latency_steps: 0
-n_obs_steps: 2
+n_obs_steps: 8
 name: train_diffusion_unet_hybrid
 obs_as_global_cond: true
 optimizer:
@@ -58,7 +58,7 @@ policy:
   crop_shape:
   - 280
   - 140
-  diffusion_step_embed_dim: 512
+  diffusion_step_embed_dim: 128
   down_dims:
   - 512
   - 1024
@@ -68,7 +68,7 @@ policy:
   kernel_size: 5
   n_action_steps: 8
   n_groups: 8
-  n_obs_steps: 2
+  n_obs_steps: 8
   noise_scheduler:
     _target_: diffusers.schedulers.scheduling_ddpm.DDPMScheduler
     beta_end: 0.02
@@ -89,15 +89,19 @@ policy:
       image1:
         shape:
         - 3
-        - 400
-        - 200
+        - 300
+        - 150
         type: rgb
       image2:
         shape:
         - 3
-        - 400
-        - 200
+        - 300
+        - 150
         type: rgb
+      controllerState:
+        shape:
+        - 4
+        type: low_dim
 shape_meta:
   action:
     shape:
@@ -115,6 +119,10 @@ shape_meta:
       - 300
       - 150
       type: rgb
+    controllerState:
+      shape:
+      - 4
+      type: low_dim
 task:
   dataset:
     _target_: diffusion_policy.dataset.vis_image_dataset.VISImageDataset
@@ -124,17 +132,17 @@ task:
     pad_before: 1
     seed: 42
     val_ratio: 0.1
-    zarr_path: ../Data/TrainData/vis_demo.zarr
+    zarr_path: ../Data/TrainData/vis_demo2.zarr
   env_runner:
     _target_: diffusion_policy.env_runner.vis_image_runner.VISImageRunner
     fps: 10
-    max_steps: 200
+    max_steps: 300
     n_action_steps: 8
     n_envs: null
     n_obs_steps: 8
-    n_test: 50
+    n_test: 4
     n_test_vis: 4
-    n_train: 6
+    n_train: 2
     n_train_vis: 2
     past_action: false
     test_start_seed: 1000
@@ -161,6 +169,10 @@ task:
         - 300
         - 150
         type: rgb
+      controllerState:
+        shape:
+        - 4
+        type: low_dim
 task_name: vis_image
 training:
   checkpoint_every: 10
@@ -180,8 +192,8 @@ training:
   use_ema: true
   val_every: 1
 val_dataloader:
-  batch_size: 64
-  num_workers: 8
+  batch_size: 1
+  num_workers: 1
   persistent_workers: false
   pin_memory: true
   shuffle: false
