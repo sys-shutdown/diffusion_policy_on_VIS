@@ -36,7 +36,7 @@ if __name__ == '__main__':
     p1 = multiprocessing.Process(target=readInput,args=(action,running))
     p1.start()
 
-    output = "../Data/TrainData/vis_demo2.zarr"
+    output = "../Data/TrainData/vis_demo3.zarr"
     replay_buffer = ReplayBuffer.create_from_path(output, mode='a')
 
 
