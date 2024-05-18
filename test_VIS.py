@@ -26,8 +26,8 @@ if __name__ == '__main__':
     env_name = "vis-v0"
     episodes = 10
     config = {
-        "display_size": (150, 300),
-        "orthoScale":0.6,
+        "display_size": (400, 800),
+        "orthoScale":0.2,
         "render_mode":"human",
     }
     env = VISEnv(config,randInit=True)

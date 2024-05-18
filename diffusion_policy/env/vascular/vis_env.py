@@ -25,8 +25,8 @@ class VISEnv(gym.Env):
     DEFAULT_CONFIG = {"scene": "VIS",
                       "deterministic": True,
                       #"source": [[300, 150, -300],[300, 150, 300]],
-                      "source": [[250, 150, -300],[250, 150, 300]],
-                      "target": [[0, 150, 0],[-50, 150, 0]],
+                      "source": [[250, 160, -300],[250, 160, 300]],
+                      "target": [[0, 160, 0],[-50, 160, 0]],
                       'goalPos':[-5.0, 250.0, 50.0],
                       "rotY": 0,
                       "rotZ": 0,
@@ -51,7 +51,7 @@ class VISEnv(gym.Env):
                       "scale": 10,
                       "rotation": [0.0, 0.0, 0.0],
                       "translation": [0.0, 0.0, 0.0],
-                      "goalList": [[-60.0,260.0,47.0],[-5.0, 250.0, 50.0]],
+                      "goalList": [[-13.5,312.0,50.0],[13.0,302.0,54.0],[-5.0, 250.0, 50.0],[-23.0,258.0,59.0],[-60.0,260.0,47.0]],
                       "ryRange":[-15,15],
                       "rzRange":[-15,15],
                       "insertRange":[0,80],
@@ -226,7 +226,7 @@ class VISEnv(gym.Env):
         if self.randInit:
             rs = np.random.RandomState(seed=self._seed)
             config = dict()
-            config["goalPos"] = self.config["goalList"][0]
+            config["goalPos"] = self.config["goalList"][rs.randint(len(self.config['goalList']))]
             config["rotY"] = rs.randint(*self.config["ryRange"])
             config["rotZ"] = rs.randint(*self.config["rzRange"])
             config["insertion"] = rs.randint(*self.config["insertRange"])
