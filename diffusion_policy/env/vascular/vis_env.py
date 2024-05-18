@@ -214,10 +214,10 @@ class VISEnv(gym.Env):
         
         # glfw.swap_buffers(self.screen)
         if mode == "human":
-            image = image[:,:,(2,1,0)]
-            cv2.imshow("obervation",image)
-            cv2.waitKey(10)
-            # pygame.display.flip()
+            # image = image[:,:,(2,1,0)]
+            # cv2.imshow("obervation",image)
+            # cv2.waitKey(10)
+            pygame.display.flip()
         return image
 
     def reset(self):
