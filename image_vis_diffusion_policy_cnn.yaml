@@ -8,8 +8,8 @@ checkpoint:
     mode: max
     monitor_key: test_mean_score
 dataloader:
-  batch_size: 1
-  num_workers: 1
+  batch_size: 64
+  num_workers: 8
   persistent_workers: false
   pin_memory: true
   shuffle: true
@@ -140,9 +140,9 @@ task:
     n_action_steps: 8
     n_envs: null
     n_obs_steps: 8
-    n_test: 4
+    n_test: 50
     n_test_vis: 4
-    n_train: 2
+    n_train: 6
     n_train_vis: 2
     past_action: false
     test_start_seed: 1000
@@ -176,7 +176,7 @@ task:
 task_name: vis_image
 training:
   checkpoint_every: 10
-  debug: true
+  debug: false
   device: cuda:0
   gradient_accumulate_every: 1
   lr_scheduler: cosine
@@ -186,14 +186,14 @@ training:
   num_epochs: 1000
   resume: true
   rollout_every: 10
-  sample_every: 2
+  sample_every: 1
   seed: 42
   tqdm_interval_sec: 1.0
   use_ema: true
   val_every: 1
 val_dataloader:
-  batch_size: 1
-  num_workers: 1
+  batch_size: 64
+  num_workers: 8
   persistent_workers: false
   pin_memory: true
   shuffle: false
