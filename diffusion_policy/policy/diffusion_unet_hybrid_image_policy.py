@@ -87,6 +87,10 @@ class DiffusionUnetHybridImagePolicy(BaseImagePolicy):
                         modality.obs_randomizer_kwargs.crop_height = ch
                         modality.obs_randomizer_kwargs.crop_width = cw
 
+            # for key, modality in config.observation.encoder.items():
+            #     if modality.core_class == 'VisualCore':
+            #         modality.core_kwargs.backbone_class = "ResNet50Conv"
+
         # init global state
         ObsUtils.initialize_obs_utils_with_config(config)
 

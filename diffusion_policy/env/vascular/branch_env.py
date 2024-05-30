@@ -16,27 +16,33 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 
 from diffusion_policy.env.vascular.VISToolbox import getReward, startCmd, get_ircontroller_state
-from diffusion_policy.env.vascular.VISScene import createScene
+from diffusion_policy.env.vascular.branchTestScene import createScene
 
-class VISEnv(gym.Env):
+import skeletor as sk
+import trimesh
+mesh = trimesh.load_mesh('/home/lys/data/Code/diffusion_policy/diffusion_policy/env/vascular/mesh/branches.stl')
+fixed = sk.pre.fix_mesh(mesh, remove_disconnected=5, inplace=False)
+skel = sk.skeletonize.by_wavefront(fixed, waves=1, step_size=1)
+
+class branchEnv(gym.Env):
     
     path = path = os.path.dirname(os.path.abspath(__file__))
     metadata = {'render.modes': ['human', 'rgb_array','dummy']}
     DEFAULT_CONFIG = {"scene": "VIS",
                       "deterministic": True,
                       #"source": [[300, 150, -300],[300, 150, 300]],
-                      "source": [[250, 160, -300],[250, 160, 300]],
-                      "target": [[0, 160, 0],[-50, 160, 0]],
-                      'goalPos':[-5.0, 250.0, 50.0],
+                      "source": [[400, 230, 30],[250, 160, 300]],
+                      "target": [[0, 230, 30],[-50, 160, 0]],
+                      'goalPos':None,
                       "rotY": 0,
                       "rotZ": 0,
                       "insertion": 0,
                       "start_node": None,
-                      "scale_factor": 3,
+                      "scale_factor": 5,
                       "dt": 0.01,
                       "timer_limit": 80,
                       "timeout": 50,
-                      "display_size": (150, 300),
+                      "display_size": (400, 400),
                       "render": 0,
                       "save_data": False,
                       "save_image": False,
@@ -45,16 +51,16 @@ class VISEnv(gym.Env):
                       "discrete": False,
                       "start_from_history": None,
                       "python_version": sys.version,
-                      "zFar": 500,
+                      "zFar": 1000,
                       "distThreshold":100,
                       "time_before_start": 100,
                       "scale": 10,
                       "rotation": [0.0, 0.0, 0.0],
                       "translation": [0.0, 0.0, 0.0],
-                      "goalList": [[-13.5,312.0,50.0],[13.0,302.0,54.0],[-5.0, 250.0, 50.0],[-23.0,258.0,59.0],[-60.0,260.0,47.0]],
-                      "ryRange":[-15,15],
-                      "rzRange":[-15,15],
-                      "insertRange":[0,80],
+                      "goalList": skel.vertices,
+                      "ryRange":[-5,5],
+                      "rzRange":[-5,5],
+                      "insertRange":[0,10],
                       "orthoScale":0.6,
                       "render_mode":"rgb_array",
                       }
@@ -67,8 +73,8 @@ class VISEnv(gym.Env):
         if config is not None:
             self.config.update(config)
         self.render_mode = self.config["render_mode"]
-        self.transScale = tS = 5.0
-        self.rotScale = rS = 5.0
+        self.transScale = tS = 3.0
+        self.rotScale = rS = 3.0
         self.action_space = spaces.Box(
             low=np.array([-tS,-rS], dtype=np.float64),
             high=np.array([tS,rS], dtype=np.float64),
@@ -77,13 +83,7 @@ class VISEnv(gym.Env):
         )
         
         self.observation_space = spaces.Dict({
-            'image1':spaces.Box(
-                    low=0,
-                    high=1,
-                    shape=(3,self.config["display_size"][0],self.config["display_size"][1]),
-                    dtype=np.float32
-                ),
-            'image2':spaces.Box(
+            'image':spaces.Box(
                     low=0,
                     high=1,
                     shape=(3,self.config["display_size"][0],self.config["display_size"][1]),
@@ -133,8 +133,7 @@ class VISEnv(gym.Env):
         controllerState = np.array(get_ircontroller_state(self.root.InstrumentCombined,0)+get_ircontroller_state(self.root.InstrumentCombined,1))
 
         obs = {
-            'image1':image[:,0:self.surface_size[0],:],
-            'image2':image[:,self.surface_size[0]:,:],
+            'image':image,
             'controllerState':controllerState
         }
         # cv2.imshow("1",obs['image1'])
@@ -166,7 +165,7 @@ class VISEnv(gym.Env):
                 pygame.init()
                 pygame.display.init()
                 pygame.display.set_caption('Vascular Intervention Sugery Simulator')
-                self.screen = pygame.display.set_mode((self.surface_size[0]*2,self.surface_size[1]), pygame.OPENGL | pygame.DOUBLEBUF)
+                self.screen = pygame.display.set_mode((self.surface_size[0],self.surface_size[1]), pygame.OPENGL | pygame.DOUBLEBUF)
                 glClearColor(0, 0, 0, 1)
             if mode == "rgb_array":
                 # glfw.init()
@@ -174,7 +173,7 @@ class VISEnv(gym.Env):
                 # glfw.make_context_current(self.screen)
                 # glClearColor(0, 0, 0, 1)
 
-                self.screen = pygame.display.set_mode((self.surface_size[0]*2,self.surface_size[1]), pygame.OPENGL | pygame.DOUBLEBUF | pygame.HIDDEN)
+                self.screen = pygame.display.set_mode((self.surface_size[0],self.surface_size[1]), pygame.OPENGL | pygame.DOUBLEBUF | pygame.HIDDEN)
         
         glViewport(0, 0, self.surface_size[0], self.surface_size[1])
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
@@ -194,29 +193,29 @@ class VISEnv(gym.Env):
             cameraMVM = self.root.camera1.getOpenGLModelViewMatrix()
             glMultMatrixd(cameraMVM)
             Sofa.SofaGL.draw(self.root)
-            glLoadIdentity()
-            cameraMVM = self.root.camera2.getOpenGLModelViewMatrix()
-            glMultMatrixd(cameraMVM)
-            glViewport(self.surface_size[0], 0, self.surface_size[0], self.surface_size[1])
-            Sofa.SofaGL.draw(self.root)
+            # glLoadIdentity()
+            # cameraMVM = self.root.camera2.getOpenGLModelViewMatrix()
+            # glMultMatrixd(cameraMVM)
+            # glViewport(self.surface_size[0], 0, self.surface_size[0], self.surface_size[1])
+            # Sofa.SofaGL.draw(self.root)
         try:
             x, y, width, height = glGetIntegerv(GL_VIEWPORT)
         except:
             width, height = self.surface_size[0], self.surface_size[1]
-        buff = glReadPixels(0, 0, width*2, height, GL_RGB, GL_UNSIGNED_BYTE)
+        buff = glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE)
 
         image_array = np.fromstring(buff, np.uint8)
         if image_array.shape != (0,):
-            image = image_array.reshape(self.surface_size[1], self.surface_size[0]*2, 3)
+            image = image_array.reshape(self.surface_size[1], self.surface_size[0], 3)
         else:
-            image = np.zeros((self.surface_size[1], self.surface_size[0]*2, 3))
+            image = np.zeros((self.surface_size[1], self.surface_size[0], 3))
         image = np.flipud(image)
         
         # glfw.swap_buffers(self.screen)
         if mode == "human":
-            # image = image[:,:,(2,1,0)]
-            # cv2.imshow("obervation",image)
-            # cv2.waitKey(10)
+            image = image[:,:,(2,1,0)]
+            cv2.imshow("obervation",image)
+            cv2.waitKey(10)
             pygame.display.flip()
         return image
 

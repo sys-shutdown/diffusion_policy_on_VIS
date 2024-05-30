@@ -90,7 +90,7 @@ class RewardShaper(Sofa.Core.Controller):
         if kwargs["rootNode"]:
             self.root = kwargs["rootNode"]
         self.goal_pos = None
-        if kwargs["goalPos"]:
+        if kwargs["goalPos"] is not None:
             self.goal_pos = kwargs["goalPos"]
         self.distThreshold = 1000
         if kwargs["distThreshold"]:
@@ -174,7 +174,7 @@ class GoalSetter(Sofa.Core.Controller):
         if kwargs["goal"]:
             self.goal = kwargs["goal"]
         self.goalPos = None
-        if kwargs["goalPos"]:
+        if kwargs["goalPos"] is not None:
             self.goalPos = kwargs["goalPos"]
 
     def update(self):
