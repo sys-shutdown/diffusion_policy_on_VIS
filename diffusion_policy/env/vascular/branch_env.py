@@ -20,9 +20,8 @@ from diffusion_policy.env.vascular.branchTestScene import createScene
 
 import skeletor as sk
 import trimesh
-mesh = trimesh.load_mesh('/home/lys/data/Code/diffusion_policy/diffusion_policy/env/vascular/mesh/branches.stl')
-fixed = sk.pre.fix_mesh(mesh, remove_disconnected=5, inplace=False)
-skel = sk.skeletonize.by_wavefront(fixed, waves=1, step_size=1)
+
+goalList = np.load('diffusion_policy/env/vascular/mesh/branchGoals.npy') 
 
 class branchEnv(gym.Env):
     
@@ -57,7 +56,7 @@ class branchEnv(gym.Env):
                       "scale": 10,
                       "rotation": [0.0, 0.0, 0.0],
                       "translation": [0.0, 0.0, 0.0],
-                      "goalList": skel.vertices,
+                      "goalList": goalList,
                       "ryRange":[-5,5],
                       "rzRange":[-5,5],
                       "insertRange":[0,10],
