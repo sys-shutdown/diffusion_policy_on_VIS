@@ -13,8 +13,8 @@ def readInput(action,running):
     if success:
         while running.value==1:
             state = pyspacemouse.read()
-            action[0] = -state.pitch*3
-            action[1] = state.yaw*3
+            action[0] = -state.pitch*2.0
+            action[1] = state.yaw*1.0
             time.sleep(0.01)
 
 
@@ -36,7 +36,7 @@ if __name__ == '__main__':
     p1 = multiprocessing.Process(target=readInput,args=(action,running))
     p1.start()
 
-    output = "../Data/TrainData/branches_demo.zarr"
+    output = "../Data/TrainData/branches_demo2.zarr"
     replay_buffer = ReplayBuffer.create_from_path(output, mode='a')
 
 
@@ -81,6 +81,7 @@ if __name__ == '__main__':
                 total_reward+=reward
                 data = {
                     'image': state['image'],
+                    'goalCond': state['goalCond'],
                     'controllerState': state['controllerState'],
                     'action': np.float32(act),
                 }

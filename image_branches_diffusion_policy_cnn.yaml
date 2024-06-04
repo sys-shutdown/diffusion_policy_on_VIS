@@ -55,9 +55,9 @@ past_action_visible: false
 policy:
   _target_: diffusion_policy.policy.diffusion_unet_hybrid_image_policy.DiffusionUnetHybridImagePolicy
   cond_predict_scale: true
-  crop_shape:
-  - 380
-  - 380
+  # crop_shape:
+  # - 380
+  # - 380
   diffusion_step_embed_dim: 256
   down_dims:
   - 512
@@ -89,12 +89,18 @@ policy:
       image:
         shape:
         - 3
-        - 400
-        - 400
+        - 300
+        - 300
+        type: rgb
+      goalCond:
+        shape:
+        - 3
+        - 300
+        - 300
         type: rgb
       controllerState:
         shape:
-        - 4
+        - 2
         type: low_dim
 shape_meta:
   action:
@@ -104,12 +110,18 @@ shape_meta:
     image:
       shape:
       - 3
-      - 400
-      - 400
+      - 300
+      - 300
+      type: rgb
+    goalCond:
+      shape:
+      - 3
+      - 300
+      - 300
       type: rgb
     controllerState:
       shape:
-      - 4
+      - 2
       type: low_dim
 task:
   dataset:
@@ -120,11 +132,11 @@ task:
     pad_before: 1
     seed: 42
     val_ratio: 0.1
-    zarr_path: ../Data/TrainData/branches_demo.zarr
+    zarr_path: ../Data/TrainData/branches_demo2.zarr
   env_runner:
     _target_: diffusion_policy.env_runner.branches_image_runner.branchesImageRunner
     fps: 10
-    max_steps: 500
+    max_steps: 200
     n_action_steps: 8
     n_envs: null
     n_obs_steps: 2
@@ -137,8 +149,8 @@ task:
     train_start_seed: 0
   image_shape:
   - 3
-  - 400
-  - 400
+  - 300
+  - 300
   name: vis_image
   shape_meta:
     action:
@@ -148,12 +160,18 @@ task:
       image:
         shape:
         - 3
-        - 400
-        - 400
+        - 300
+        - 300
+        type: rgb
+      goalCond:
+        shape:
+        - 3
+        - 300
+        - 300
         type: rgb
       controllerState:
         shape:
-        - 4
+        - 2
         type: low_dim
 task_name: branches_image
 training:

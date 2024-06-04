@@ -15,23 +15,55 @@ import pygame
 from OpenGL.GL import *
 from OpenGL.GLU import *
 
-from diffusion_policy.env.vascular.VISToolbox import getReward, startCmd, get_ircontroller_state
+from diffusion_policy.env.vascular.branchToolbox import getReward, startCmd, get_ircontroller_state
 from diffusion_policy.env.vascular.branchTestScene import createScene
 
-import skeletor as sk
-import trimesh
+def dfs(cur, goalIdx, path, graph, visited,result):
+            if(goalIdx == cur):
+                result += path
+                return
+            for neighbor in graph[cur]:
+                if not visited[neighbor]:
+                    path += [neighbor]
+                    visited[neighbor] = True
+                    dfs(neighbor,goalIdx,path,graph,visited,result)
+                    visited[neighbor] = False
+                    path.pop()
 
-goalList = np.load('diffusion_policy/env/vascular/mesh/branchGoals.npy') 
 
 class branchEnv(gym.Env):
-    
+    branchModelPath = 'diffusion_policy/env/vascular/mesh/branchSkeleton.obj'
+    with open(branchModelPath) as file:
+        points = []
+        lines = []
+        line = file.readline()
+        while line:
+            strs = line.split(" ")
+            if strs[0] == "v":
+                points.append([float(strs[1]),float(strs[2]),float(strs[3])])
+            if strs[0] == "l":
+                lines.append([int(strs[1])-1,int(strs[2])-1])
+            line = file.readline()
+    goalList = [0]+list(range(len(points)))[3:] 
+    graph = dict()
+    for line in lines:
+        if line[0] in graph:
+            graph[line[0]] += [line[1]]
+        else:
+            graph[line[0]] = [line[1]]
+
+        if line[1] in graph:
+            graph[line[1]] += [line[0]]
+        else:
+            graph[line[1]] = [line[0]]  
+
     path = path = os.path.dirname(os.path.abspath(__file__))
     metadata = {'render.modes': ['human', 'rgb_array','dummy']}
     DEFAULT_CONFIG = {"scene": "VIS",
                       "deterministic": True,
                       #"source": [[300, 150, -300],[300, 150, 300]],
-                      "source": [[400, 230, 30],[250, 160, 300]],
-                      "target": [[0, 230, 30],[-50, 160, 0]],
+                      "source": [[300, 120, 0],[250, 160, 300]],
+                      "target": [[0, 120, 0],[-50, 160, 0]],
                       'goalPos':None,
                       "rotY": 0,
                       "rotZ": 0,
@@ -41,7 +73,7 @@ class branchEnv(gym.Env):
                       "dt": 0.01,
                       "timer_limit": 80,
                       "timeout": 50,
-                      "display_size": (400, 400),
+                      "display_size": (300, 300),
                       "render": 0,
                       "save_data": False,
                       "save_image": False,
@@ -56,11 +88,15 @@ class branchEnv(gym.Env):
                       "scale": 10,
                       "rotation": [0.0, 0.0, 0.0],
                       "translation": [0.0, 0.0, 0.0],
+                      "nodeVertices": points,
+                      "nodeLines": lines,
+                      "nodeGraph": graph,
+                      "startNode": 1,
                       "goalList": goalList,
-                      "ryRange":[-5,5],
-                      "rzRange":[-5,5],
-                      "insertRange":[0,10],
-                      "orthoScale":0.6,
+                      "ryRange":[-1,1],
+                      "rzRange":[-1,1],
+                      "insertRange":[0,1],
+                      "orthoScale":0.25,
                       "render_mode":"rgb_array",
                       }
 
@@ -68,12 +104,14 @@ class branchEnv(gym.Env):
         self.config = copy.deepcopy(self.DEFAULT_CONFIG)
         self.randInit = randInit
         self._seed = None
+        self.goalPath = None
+        self.randShift = None
         self.seed()
         if config is not None:
             self.config.update(config)
         self.render_mode = self.config["render_mode"]
-        self.transScale = tS = 3.0
-        self.rotScale = rS = 3.0
+        self.transScale = tS = 2.0
+        self.rotScale = rS = 1.0
         self.action_space = spaces.Box(
             low=np.array([-tS,-rS], dtype=np.float64),
             high=np.array([tS,rS], dtype=np.float64),
@@ -88,10 +126,16 @@ class branchEnv(gym.Env):
                     shape=(3,self.config["display_size"][0],self.config["display_size"][1]),
                     dtype=np.float32
                 ),
+            'goalCond':spaces.Box(
+                    low=0,
+                    high=1,
+                    shape=(3,self.config["display_size"][0],self.config["display_size"][1]),
+                    dtype=np.float32
+                ),
             'controllerState':spaces.Box(
-                    low=np.array([0,-100,0,-100], dtype=np.float64),
-                    high=np.array([400,100,400,100], dtype=np.float64),
-                    shape=(4,),
+                    low=np.array([0,-20], dtype=np.float64),
+                    high=np.array([400,20], dtype=np.float64),
+                    shape=(2,),
                     dtype=np.float64
             ),  
         })
@@ -129,10 +173,12 @@ class branchEnv(gym.Env):
         if(mode=="dummy"):
             return dict()
         image = self._render_frame(mode)
-        controllerState = np.array(get_ircontroller_state(self.root.InstrumentCombined,0)+get_ircontroller_state(self.root.InstrumentCombined,1))
-
+        controllerState = np.array(get_ircontroller_state(self.root.InstrumentCombined,1))
+        visual_layer = image[:,:self.surface_size[0]]
+        prompt_layer = image[:,self.surface_size[0]:]
         obs = {
-            'image':image,
+            'image':visual_layer,
+            'goalCond':prompt_layer,
             'controllerState':controllerState
         }
         # cv2.imshow("1",obs['image1'])
@@ -164,7 +210,7 @@ class branchEnv(gym.Env):
                 pygame.init()
                 pygame.display.init()
                 pygame.display.set_caption('Vascular Intervention Sugery Simulator')
-                self.screen = pygame.display.set_mode((self.surface_size[0],self.surface_size[1]), pygame.OPENGL | pygame.DOUBLEBUF)
+                self.screen = pygame.display.set_mode((self.surface_size[0]*2,self.surface_size[1]), pygame.OPENGL | pygame.DOUBLEBUF)
                 glClearColor(0, 0, 0, 1)
             if mode == "rgb_array":
                 # glfw.init()
@@ -172,7 +218,7 @@ class branchEnv(gym.Env):
                 # glfw.make_context_current(self.screen)
                 # glClearColor(0, 0, 0, 1)
 
-                self.screen = pygame.display.set_mode((self.surface_size[0],self.surface_size[1]), pygame.OPENGL | pygame.DOUBLEBUF | pygame.HIDDEN)
+                self.screen = pygame.display.set_mode((self.surface_size[0]*2,self.surface_size[1]), pygame.OPENGL | pygame.DOUBLEBUF | pygame.HIDDEN)
         
         glViewport(0, 0, self.surface_size[0], self.surface_size[1])
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
@@ -192,6 +238,22 @@ class branchEnv(gym.Env):
             cameraMVM = self.root.camera1.getOpenGLModelViewMatrix()
             glMultMatrixd(cameraMVM)
             Sofa.SofaGL.draw(self.root)
+
+            glViewport(self.surface_size[0], 0, self.surface_size[0], self.surface_size[1])
+            glColor4ub(0, 255, 0, 255)
+            glLineWidth(2.0)
+
+            glBegin(GL_LINES)
+            vert0 = self.config["nodeVertices"][self.goalPath[0]]+self.randShift[0]
+            for i in range(len(self.goalPath)-1):
+                node1 =  self.goalPath[i+1]
+                vert1 = self.config["nodeVertices"][node1]+self.randShift[i+1]
+                glVertex3f(*vert0)
+                glVertex3f(*vert1)
+                vert0 = vert1.copy()
+
+            glEnd()
+
             # glLoadIdentity()
             # cameraMVM = self.root.camera2.getOpenGLModelViewMatrix()
             # glMultMatrixd(cameraMVM)
@@ -201,15 +263,16 @@ class branchEnv(gym.Env):
             x, y, width, height = glGetIntegerv(GL_VIEWPORT)
         except:
             width, height = self.surface_size[0], self.surface_size[1]
-        buff = glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE)
+        buff = glReadPixels(0, 0, width*2, height, GL_RGB, GL_UNSIGNED_BYTE)
 
         image_array = np.fromstring(buff, np.uint8)
         if image_array.shape != (0,):
-            image = image_array.reshape(self.surface_size[1], self.surface_size[0], 3)
+            image = image_array.reshape(self.surface_size[1], self.surface_size[0]*2, 3)
         else:
-            image = np.zeros((self.surface_size[1], self.surface_size[0], 3))
+            image = np.zeros((self.surface_size[1], self.surface_size[0]*2, 3))
         image = np.flipud(image)
-        
+
+        # image = prompt_layer+visual_layer
         # glfw.swap_buffers(self.screen)
         if mode == "human":
             image = image[:,:,(2,1,0)]
@@ -221,14 +284,25 @@ class branchEnv(gym.Env):
     def reset(self):
 
         # Set a new random goal from the list
+        
+
         if self.randInit:
+
             rs = np.random.RandomState(seed=self._seed)
             config = dict()
-            config["goalPos"] = self.config["goalList"][rs.randint(len(self.config['goalList']))]
+            goal_idx = self.config["goalList"][rs.randint(len(self.config["goalList"]))]
+            visited = [False for i in range(len(self.config["nodeVertices"]))]
+            result = []
+            path = [self.config["startNode"]]
+            dfs(self.config["startNode"],goal_idx,path,self.config["nodeGraph"],visited,result)
+            self.goalPath = result
+            self.randShift = np.random.randn(len(self.goalPath),3)*0.5
+            config["goalPos"] = self.config["nodeVertices"][goal_idx]
             config["rotY"] = rs.randint(*self.config["ryRange"])
             config["rotZ"] = rs.randint(*self.config["rzRange"])
             config["insertion"] = rs.randint(*self.config["insertRange"])
             self.config.update(config)
+
 
 
         self.root = self.init_simulation(self.config)

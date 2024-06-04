@@ -13,8 +13,8 @@ def readInput(action,running):
     if success:
         while running.value==1:
             state = pyspacemouse.read()
-            action[0] = -state.pitch*3.0
-            action[1] = state.yaw*3.0
+            action[0] = -state.pitch*2.0
+            action[1] = state.yaw*1.0
             time.sleep(0.01)
 
 
@@ -25,8 +25,8 @@ if __name__ == '__main__':
     running = multiprocessing.Value("b",1)
     env_name = "branches-v0"
     config = {
-        "display_size": (400, 400),
-        "orthoScale":0.6,
+        "display_size": (300, 300),
+        "orthoScale":0.25,
         "scale_factor": 3,
         "render_mode":"human",
     }

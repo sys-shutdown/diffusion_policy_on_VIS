@@ -262,7 +262,7 @@ def getReward(root):
     """
     reward, cost = root.Reward.getReward()
 
-    if cost <= 10.0:
+    if cost <= 5.0:
         return True, 1.0
 
     return False, reward

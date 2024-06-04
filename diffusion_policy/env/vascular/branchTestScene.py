@@ -1,7 +1,7 @@
 import pathlib
 import sys
 import numpy as np
-from VISToolbox import GoalSetter, RewardShaper, StateInitializer
+from branchToolbox import GoalSetter, RewardShaper, StateInitializer
 from splib3.animation import AnimationManagerController
 from os.path import abspath, dirname
 path = dirname(abspath(__file__)) + '/mesh/'
@@ -11,7 +11,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
 def add_goal_node(root):
     goal = root.addChild("Goal")
     goal.addObject('VisualStyle', displayFlags="showCollisionModels")
-    goal_mo = goal.addObject('MechanicalObject', name='GoalMO', showObject=True, drawMode="1", showObjectScale=5.0,
+    goal_mo = goal.addObject('MechanicalObject', name='GoalMO', showObject=False, drawMode="1", showObjectScale=3.0,
                              showColor=[0, 1, 0, 0.5], position=[-60.0,260.0,47.0])
     return goal
 
@@ -90,7 +90,7 @@ def createScene(root,
     # Catheter
     cath = root.addChild('topoLines_cath')
     cath.addObject('RodStraightSection', name="StraightSection", youngModulus="100000", nbEdgesCollis="40", nbEdgesVisu="220", length="200.0")
-    cath.addObject('RodSpireSection', name="SpireSection", youngModulus="100000", nbEdgesCollis="20", nbEdgesVisu="80", length="200.0", spireDiameter="4000.0", spireHeight="0.0")
+    cath.addObject('RodSpireSection', name="SpireSection", youngModulus="100000", nbEdgesCollis="20", nbEdgesVisu="80", length="10.0", spireDiameter="5000.0", spireHeight="0.0")
     cath.addObject('WireRestShape', template="Rigid3d", name="catheterRestShape", wireMaterials="@StraightSection @SpireSection")	
     cath.addObject('EdgeSetTopologyContainer', name='meshLinesCath')
     cath.addObject('EdgeSetTopologyModifier', name='Modifier')
@@ -99,8 +99,8 @@ def createScene(root,
 
     ## Guide
     guide = root.addChild('topoLines_guide')
-    guide.addObject('RodStraightSection', name="StraightSection", youngModulus="10000", nbEdgesCollis="50", nbEdgesVisu="196", length="580.0")
-    guide.addObject('RodSpireSection', name="SpireSection", youngModulus="10000", nbEdgesCollis="20", nbEdgesVisu="10", length="20.0", spireDiameter="25", spireHeight="0.0")
+    guide.addObject('RodStraightSection', name="StraightSection", youngModulus="10000", nbEdgesCollis="50", nbEdgesVisu="196", length="540.0")
+    guide.addObject('RodSpireSection', name="SpireSection", youngModulus="10000", nbEdgesCollis="20", nbEdgesVisu="10", length="30.0", spireDiameter="40", spireHeight="0.0")
     guide.addObject('WireRestShape', template="Rigid3d", name="GuideRestShape", wireMaterials="@StraightSection @SpireSection")
     guide.addObject('EdgeSetTopologyContainer', name='meshLinesGuide')
     guide.addObject('EdgeSetTopologyModifier', name='Modifier')
@@ -113,7 +113,7 @@ def createScene(root,
     instrument.addObject('EulerImplicitSolver', rayleighStiffness=0.2, rayleighMass=0.1, printLog=False)
     instrument.addObject('BTDLinearSolver', subpartSolve=True, verification=False, verbose=False)
     instrument.addObject('RegularGridTopology', name='meshLinesCombined', nx=180, ny=1, nz=1, xmin=0.0, xmax=1.0, ymin=0.0, ymax=0.0, zmin=1, zmax=1)
-    instrument.addObject('MechanicalObject', template='Rigid3d', name='DOFs', showIndices=False,ry=0+config["rotY"],rz=80+config["rotZ"])
+    instrument.addObject('MechanicalObject', template='Rigid3d', name='DOFs', showIndices=False,ry=0,rz=90)
     
     instrument.addObject('WireBeamInterpolation', name='InterpolCatheter', WireRestShape='@../topoLines_cath/catheterRestShape', radius=1.5, printLog=False)
     instrument.addObject('AdaptiveBeamForceFieldAndMass', name='CatheterForceField', interpolation='@InterpolCatheter', massDensity=0.00000155)	
@@ -125,7 +125,7 @@ def createScene(root,
     #                      timeSteps=[0.04*i for i in range(25)], actions=[1 for i in range(25)]
     #                      )
     
-    instrument.addObject('InterventionalRadiologyController', template='Rigid3d', name='m_ircontroller', printLog=False, xtip=[40+config["insertion"], 0], step=3, rotationInstrument=[0,0],
+    instrument.addObject('InterventionalRadiologyController', template='Rigid3d', name='m_ircontroller', printLog=False, xtip=[90, 0], step=3, rotationInstrument=[0,1.57],
                          controlledInstrument=1, startingPos=[0, 0, 0, 0.707, 0.0, 0.0, 0.707], speed=0, instruments=['InterpolCatheter','InterpolGuide'])
     
     
@@ -151,7 +151,7 @@ def createScene(root,
     cath_visu.addObject('AdaptiveBeamMapping', name='VisuMapCath', useCurvAbs=True, printLog=False, interpolation='@../InterpolCatheter', input='@../DOFs', output='@Quads', isMechanical=False)
     
     cath_visuOgl = cath_visu.addChild('VisuOgl', activated=True)
-    # cath_visuOgl.addObject('OglModel', name='Visual', color=[0.9, 0.0, 0.9, 0.7], quads='@../ContainerCath.quads')
+    # cath_visuOgl.addObject('OglModel', name='Visual', color=[1.0, 0.0, 0.0], quads='@../ContainerCath.quads')
     cath_visuOgl.addObject('OglModel', name='Visual', color=[0.1, 0.5, 0.9], quads='@../ContainerCath.quads', material='texture Ambient 1 0.2 0.2 0.2 0.0 Diffuse 1 1.0 1.0 1.0 1.0 Specular 1 1.0 1.0 1.0 1.0 Emissive 0 0.15 0.05 0.05 0.0 Shininess 1 20')
     cath_visuOgl.addObject('IdentityMapping', input='@../Quads', output='@Visual')
     
@@ -164,20 +164,20 @@ def createScene(root,
     guide_visu.addObject('AdaptiveBeamMapping', name='visuMapGuide', useCurvAbs=True, printLog=False, interpolation='@../InterpolGuide', input='@../DOFs', output='@Quads', isMechanical=False)
 			
     guide_visuOgl = guide_visu.addChild('VisuOgl')
-    # guide_visuOgl.addObject('OglModel', name='Visual', color=[0.0, 1.0, 1.0], quads='@../ContainerGuide.quads')
+    # guide_visuOgl.addObject('OglModel', name='Visual', color=[0.0, 0.0, 1.0], quads='@../ContainerGuide.quads')
     guide_visuOgl.addObject('OglModel', name='Visual', color=[0.9, 0.9, 0.9], material='texture Ambient 1 0.2 0.2 0.2 0.0 Diffuse 1 1.0 1.0 1.0 1.0 Specular 1 1.0 1.0 1.0 1.0 Emissive 0 0.15 0.05 0.05 0.0 Shininess 1 20', quads='@../ContainerGuide.quads')
     guide_visuOgl.addObject('IdentityMapping', input='@../Quads', output='@Visual')
     
 
     # Collision
     collision = root.addChild('CollisionModel') 
-    collision.addObject('MeshSTLLoader', name='meshLoader', filename=path+'branches.stl', triangulate=True, flipNormals=True)
+    collision.addObject('MeshSTLLoader', name='meshLoader', filename=path+'test.stl', triangulate=True, flipNormals=True)
     collision.addObject('MeshTopology', position='@meshLoader.position', triangles='@meshLoader.triangles')
     collision.addObject('MechanicalObject', name='DOFs1')
     collision.addObject('TriangleCollisionModel', simulated=False, moving=True)
     collision.addObject('LineCollisionModel', simulated=False, moving=False)
     collision.addObject('PointCollisionModel', simulated=False, moving=False)
-    collision.addObject('OglModel', name='Visual', src='@meshLoader', color=[1, 0, 0, 0.3])
+    collision.addObject('OglModel', name='Visual', src='@meshLoader', color=[1, 0, 0, 0.2])
 
     # # Goal
     goal = add_goal_node(root)
@@ -191,7 +191,7 @@ def createScene(root,
     source = config["source"]
     target = config["target"]
     root.addObject("LightManager",name="light")
-    spotloc = [0, source[0][1]+config["zFar"], 0]
+    spotloc = [source[0][0], source[0][1]+config["zFar"], 0]
     root.addObject("SpotLight", position=spotloc, direction=[0, -np.sign(source[0][1]), 0])
     root.addObject("InteractiveCamera", name="camera1", position=source[0], lookAt=target[0], zFar=config["zFar"])
     root.addObject("InteractiveCamera", name="camera2", position=source[1], lookAt=target[1], zFar=config["zFar"])
