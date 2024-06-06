@@ -21,6 +21,7 @@ def createScene(root,
                         "goalPos": None,
                         "rotY": 0,
                         "rotZ": 0,
+                        "rotation": 1.57,
                         "insertion": 0,
                         "zFar":4000,
                         "distThreshold":500,
@@ -99,7 +100,7 @@ def createScene(root,
 
     ## Guide
     guide = root.addChild('topoLines_guide')
-    guide.addObject('RodStraightSection', name="StraightSection", youngModulus="10000", nbEdgesCollis="50", nbEdgesVisu="196", length="540.0")
+    guide.addObject('RodStraightSection', name="StraightSection", youngModulus="10000", nbEdgesCollis="50", nbEdgesVisu="196", length="240.0")
     guide.addObject('RodSpireSection', name="SpireSection", youngModulus="10000", nbEdgesCollis="20", nbEdgesVisu="10", length="30.0", spireDiameter="40", spireHeight="0.0")
     guide.addObject('WireRestShape', template="Rigid3d", name="GuideRestShape", wireMaterials="@StraightSection @SpireSection")
     guide.addObject('EdgeSetTopologyContainer', name='meshLinesGuide')
@@ -125,7 +126,7 @@ def createScene(root,
     #                      timeSteps=[0.04*i for i in range(25)], actions=[1 for i in range(25)]
     #                      )
     
-    instrument.addObject('InterventionalRadiologyController', template='Rigid3d', name='m_ircontroller', printLog=False, xtip=[90, 0], step=3, rotationInstrument=[0,1.57],
+    instrument.addObject('InterventionalRadiologyController', template='Rigid3d', name='m_ircontroller', printLog=False, xtip=[90, 0], step=3, rotationInstrument=[0,config["rotation"]],
                          controlledInstrument=1, startingPos=[0, 0, 0, 0.707, 0.0, 0.0, 0.707], speed=0, instruments=['InterpolCatheter','InterpolGuide'])
     
     
@@ -151,7 +152,7 @@ def createScene(root,
     cath_visu.addObject('AdaptiveBeamMapping', name='VisuMapCath', useCurvAbs=True, printLog=False, interpolation='@../InterpolCatheter', input='@../DOFs', output='@Quads', isMechanical=False)
     
     cath_visuOgl = cath_visu.addChild('VisuOgl', activated=True)
-    # cath_visuOgl.addObject('OglModel', name='Visual', color=[1.0, 0.0, 0.0], quads='@../ContainerCath.quads')
+    # cath_visuOgl.addObject('OglModel', name='Visual', color=[0.0, 0.0, 1.0], quads='@../ContainerCath.quads')
     cath_visuOgl.addObject('OglModel', name='Visual', color=[0.1, 0.5, 0.9], quads='@../ContainerCath.quads', material='texture Ambient 1 0.2 0.2 0.2 0.0 Diffuse 1 1.0 1.0 1.0 1.0 Specular 1 1.0 1.0 1.0 1.0 Emissive 0 0.15 0.05 0.05 0.0 Shininess 1 20')
     cath_visuOgl.addObject('IdentityMapping', input='@../Quads', output='@Visual')
     
@@ -164,7 +165,7 @@ def createScene(root,
     guide_visu.addObject('AdaptiveBeamMapping', name='visuMapGuide', useCurvAbs=True, printLog=False, interpolation='@../InterpolGuide', input='@../DOFs', output='@Quads', isMechanical=False)
 			
     guide_visuOgl = guide_visu.addChild('VisuOgl')
-    # guide_visuOgl.addObject('OglModel', name='Visual', color=[0.0, 0.0, 1.0], quads='@../ContainerGuide.quads')
+    # guide_visuOgl.addObject('OglModel', name='Visual', color=[1.0, 0.0, 1.0], quads='@../ContainerGuide.quads')
     guide_visuOgl.addObject('OglModel', name='Visual', color=[0.9, 0.9, 0.9], material='texture Ambient 1 0.2 0.2 0.2 0.0 Diffuse 1 1.0 1.0 1.0 1.0 Specular 1 1.0 1.0 1.0 1.0 Emissive 0 0.15 0.05 0.05 0.0 Shininess 1 20', quads='@../ContainerGuide.quads')
     guide_visuOgl.addObject('IdentityMapping', input='@../Quads', output='@Visual')
     

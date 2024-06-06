@@ -13,7 +13,7 @@ dataloader:
   persistent_workers: false
   pin_memory: true
   shuffle: true
-dataset_obs_steps: 2
+dataset_obs_steps: 4
 ema:
   _target_: diffusion_policy.model.diffusion.ema_model.EMAModel
   inv_gamma: 1.0
@@ -22,13 +22,13 @@ ema:
   power: 0.75
   update_after_step: 0
 exp_name: default
-horizon: 16
+horizon: 12
 keypoint_visible_rate: 1.0
 logging:
   group: null
   id: null
   mode: online
-  name: 2024.05.30_train_diffusion_unet_hybrid_branches_image
+  name: 2024.06.06_train_diffusion_unet_hybrid_branches_image
   project: branches_diffusion_policy
   resume: true
   tags:
@@ -40,7 +40,7 @@ multi_run:
   wandb_name_base: 2024.05.14_train_diffusion_unet_hybrid_vis_image
 n_action_steps: 8
 n_latency_steps: 0
-n_obs_steps: 2
+n_obs_steps: 4
 name: train_diffusion_unet_hybrid
 obs_as_global_cond: true
 optimizer:
@@ -55,20 +55,20 @@ past_action_visible: false
 policy:
   _target_: diffusion_policy.policy.diffusion_unet_hybrid_image_policy.DiffusionUnetHybridImagePolicy
   cond_predict_scale: true
-  # crop_shape:
-  # - 380
-  # - 380
+  crop_shape:
+  - 280
+  - 280
   diffusion_step_embed_dim: 256
   down_dims:
   - 512
   - 1024
   - 2048
   eval_fixed_crop: true
-  horizon: 16
+  horizon: 12
   kernel_size: 5
   n_action_steps: 8
   n_groups: 8
-  n_obs_steps: 2
+  n_obs_steps: 4
   noise_scheduler:
     _target_: diffusers.schedulers.scheduling_ddpm.DDPMScheduler
     beta_end: 0.02
@@ -92,16 +92,10 @@ policy:
         - 300
         - 300
         type: rgb
-      goalCond:
-        shape:
-        - 3
-        - 300
-        - 300
-        type: rgb
-      controllerState:
-        shape:
-        - 2
-        type: low_dim
+      # controllerState:
+      #   shape:
+      #   - 2
+      #   type: low_dim
 shape_meta:
   action:
     shape:
@@ -113,33 +107,27 @@ shape_meta:
       - 300
       - 300
       type: rgb
-    goalCond:
-      shape:
-      - 3
-      - 300
-      - 300
-      type: rgb
-    controllerState:
-      shape:
-      - 2
-      type: low_dim
+    # controllerState:
+    #   shape:
+    #   - 2
+    #   type: low_dim
 task:
   dataset:
     _target_: diffusion_policy.dataset.branches_image_dataset.branchesImageDataset
-    horizon: 16
+    horizon: 12
     max_train_episodes: null
     pad_after: 7
     pad_before: 1
     seed: 42
     val_ratio: 0.1
-    zarr_path: ../Data/TrainData/branches_demo2.zarr
+    zarr_path: ../Data/TrainData/branches_demo3.zarr
   env_runner:
     _target_: diffusion_policy.env_runner.branches_image_runner.branchesImageRunner
     fps: 10
-    max_steps: 200
+    max_steps: 300
     n_action_steps: 8
     n_envs: null
-    n_obs_steps: 2
+    n_obs_steps: 4
     n_test: 2
     n_test_vis: 2
     n_train: 1
@@ -163,16 +151,10 @@ task:
         - 300
         - 300
         type: rgb
-      goalCond:
-        shape:
-        - 3
-        - 300
-        - 300
-        type: rgb
-      controllerState:
-        shape:
-        - 2
-        type: low_dim
+      # controllerState:
+      #   shape:
+      #   - 2
+      #   type: low_dim
 task_name: branches_image
 training:
   checkpoint_every: 10

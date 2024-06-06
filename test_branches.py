@@ -25,9 +25,9 @@ if __name__ == '__main__':
     running = multiprocessing.Value("b",1)
     env_name = "branches-v0"
     config = {
-        "display_size": (300, 300),
-        "orthoScale":0.25,
-        "scale_factor": 3,
+        "display_size": (800, 800),
+        "orthoScale":0.1,
+        "scale_factor": 1,
         "render_mode":"human",
     }
     env = branchEnv(config,randInit=True)

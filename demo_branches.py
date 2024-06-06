@@ -36,7 +36,7 @@ if __name__ == '__main__':
     p1 = multiprocessing.Process(target=readInput,args=(action,running))
     p1.start()
 
-    output = "../Data/TrainData/branches_demo2.zarr"
+    output = "../Data/TrainData/branches_demo3.zarr"
     replay_buffer = ReplayBuffer.create_from_path(output, mode='a')
 
 
@@ -81,7 +81,7 @@ if __name__ == '__main__':
                 total_reward+=reward
                 data = {
                     'image': state['image'],
-                    'goalCond': state['goalCond'],
+                    # 'goalCond': state['goalCond'],
                     'controllerState': state['controllerState'],
                     'action': np.float32(act),
                 }

@@ -95,6 +95,7 @@ class branchEnv(gym.Env):
                       "goalList": goalList,
                       "ryRange":[-1,1],
                       "rzRange":[-1,1],
+                      "rotationRange":[-3.14,3.14],
                       "insertRange":[0,1],
                       "orthoScale":0.25,
                       "render_mode":"rgb_array",
@@ -126,12 +127,12 @@ class branchEnv(gym.Env):
                     shape=(3,self.config["display_size"][0],self.config["display_size"][1]),
                     dtype=np.float32
                 ),
-            'goalCond':spaces.Box(
-                    low=0,
-                    high=1,
-                    shape=(3,self.config["display_size"][0],self.config["display_size"][1]),
-                    dtype=np.float32
-                ),
+            # 'goalCond':spaces.Box(
+            #         low=0,
+            #         high=1,
+            #         shape=(3,self.config["display_size"][0],self.config["display_size"][1]),
+            #         dtype=np.float32
+            #     ),
             'controllerState':spaces.Box(
                     low=np.array([0,-20], dtype=np.float64),
                     high=np.array([400,20], dtype=np.float64),
@@ -174,11 +175,8 @@ class branchEnv(gym.Env):
             return dict()
         image = self._render_frame(mode)
         controllerState = np.array(get_ircontroller_state(self.root.InstrumentCombined,1))
-        visual_layer = image[:,:self.surface_size[0]]
-        prompt_layer = image[:,self.surface_size[0]:]
         obs = {
-            'image':visual_layer,
-            'goalCond':prompt_layer,
+            'image':image,
             'controllerState':controllerState
         }
         # cv2.imshow("1",obs['image1'])
@@ -240,8 +238,8 @@ class branchEnv(gym.Env):
             Sofa.SofaGL.draw(self.root)
 
             glViewport(self.surface_size[0], 0, self.surface_size[0], self.surface_size[1])
-            glColor4ub(0, 255, 0, 255)
-            glLineWidth(2.0)
+            glColor3f(0.0, 1.0, 0.0)
+            glLineWidth(4.0)
 
             glBegin(GL_LINES)
             vert0 = self.config["nodeVertices"][self.goalPath[0]]+self.randShift[0]
@@ -271,10 +269,13 @@ class branchEnv(gym.Env):
         else:
             image = np.zeros((self.surface_size[1], self.surface_size[0]*2, 3))
         image = np.flipud(image)
-
-        # image = prompt_layer+visual_layer
+        visual_layer = image[:,:self.surface_size[0]]
+        prompt_layer = image[:,self.surface_size[0]:]
+        image = cv2.addWeighted(visual_layer, 1.0, prompt_layer, 0.5, 0)
         # glfw.swap_buffers(self.screen)
         if mode == "human":
+            
+            # image1 = np.concatenate([visual_layer[...,0:1],prompt_layer[...,1:2],visual_layer[...,2:]],axis=-1)
             image = image[:,:,(2,1,0)]
             cv2.imshow("obervation",image)
             cv2.waitKey(10)
@@ -300,6 +301,7 @@ class branchEnv(gym.Env):
             config["goalPos"] = self.config["nodeVertices"][goal_idx]
             config["rotY"] = rs.randint(*self.config["ryRange"])
             config["rotZ"] = rs.randint(*self.config["rzRange"])
+            config["rotation"] = rs.rand()*(self.config["rotationRange"][1]-self.config["rotationRange"][0])+self.config["rotationRange"][0]
             config["insertion"] = rs.randint(*self.config["insertRange"])
             self.config.update(config)
 
