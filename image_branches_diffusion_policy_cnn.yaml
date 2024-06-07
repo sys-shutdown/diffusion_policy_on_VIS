@@ -8,7 +8,7 @@ checkpoint:
     mode: max
     monitor_key: test_mean_score
 dataloader:
-  batch_size: 1
+  batch_size: 2
   num_workers: 1
   persistent_workers: false
   pin_memory: true
@@ -115,7 +115,6 @@ task:
   dataset:
     _target_: diffusion_policy.dataset.branches_image_dataset.branchesImageDataset
     horizon: 12
-    max_train_episodes: null
     pad_after: 7
     pad_before: 1
     seed: 42
@@ -174,7 +173,7 @@ training:
   use_ema: true
   val_every: 1
 val_dataloader:
-  batch_size: 1
+  batch_size: 2
   num_workers: 1
   persistent_workers: false
   pin_memory: true

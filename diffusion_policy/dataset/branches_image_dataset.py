@@ -98,7 +98,7 @@ def test():
     import os
     import cv2
     zarr_path = os.path.expanduser('../Data/TrainData/branches_demo3.zarr')
-    dataset = branchesImageDataset(zarr_path, horizon=16)
+    dataset = branchesImageDataset(zarr_path, horizon=1)
     for j in range(200):
         data = dataset.__getitem__(random.randint(0,dataset.__len__()-1))
         print(data['obs']['controllerState'])
