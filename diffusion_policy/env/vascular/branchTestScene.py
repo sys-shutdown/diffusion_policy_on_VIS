@@ -172,7 +172,7 @@ def createScene(root,
 
     # Collision
     collision = root.addChild('CollisionModel') 
-    collision.addObject('MeshSTLLoader', name='meshLoader', filename=path+'test.stl', triangulate=True, flipNormals=True)
+    collision.addObject('MeshSTLLoader', name='meshLoader', filename=path+'YTube.stl', triangulate=True, flipNormals=True)
     collision.addObject('MeshTopology', position='@meshLoader.position', triangles='@meshLoader.triangles')
     collision.addObject('MechanicalObject', name='DOFs1')
     collision.addObject('TriangleCollisionModel', simulated=False, moving=True)

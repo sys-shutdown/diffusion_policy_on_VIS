@@ -32,7 +32,7 @@ def dfs(cur, goalIdx, path, graph, visited,result):
 
 
 class branchEnv(gym.Env):
-    branchModelPath = 'diffusion_policy/env/vascular/mesh/branchSkeleton.obj'
+    branchModelPath = 'diffusion_policy/env/vascular/mesh/YTubeSkeleton.obj'
     with open(branchModelPath) as file:
         points = []
         lines = []
@@ -44,7 +44,7 @@ class branchEnv(gym.Env):
             if strs[0] == "l":
                 lines.append([int(strs[1])-1,int(strs[2])-1])
             line = file.readline()
-    goalList = [0]+list(range(len(points)))[3:] 
+    goalList = list(range(len(points)))[1:] 
     graph = dict()
     for line in lines:
         if line[0] in graph:
@@ -91,7 +91,7 @@ class branchEnv(gym.Env):
                       "nodeVertices": points,
                       "nodeLines": lines,
                       "nodeGraph": graph,
-                      "startNode": 1,
+                      "startNode": 0,
                       "goalList": goalList,
                       "ryRange":[-1,1],
                       "rzRange":[-1,1],
