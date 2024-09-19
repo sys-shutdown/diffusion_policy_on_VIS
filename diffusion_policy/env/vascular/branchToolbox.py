@@ -91,8 +91,10 @@ class RewardShaper(Sofa.Core.Controller):
             self.root = kwargs["rootNode"]
         self.goal_pos = None
         if kwargs["goalPos"] is not None:
-            self.goal_pos = kwargs["goalPos"]
-        self.distThreshold = 1000
+            self.goal_pos = np.array(kwargs["goalPos"])
+        if kwargs["goalDir"] is not None:
+            self.goal_dir = kwargs["goalDir"]
+        self.distThreshold = 50
         if kwargs["distThreshold"]:
             self.distThreshold = kwargs["distThreshold"]
 
@@ -111,11 +113,19 @@ class RewardShaper(Sofa.Core.Controller):
         -------
             The reward and the cost.
 
-        """
-        tip = self.root.InstrumentCombined.VisuGuide.Quads.position[-1]
-        current_dist = np.linalg.norm(np.array(tip)[1:]-np.array(self.goal_pos)[1:])
-        reward = np.clip((self.distThreshold-current_dist)/self.distThreshold,0,1)
-        return reward, current_dist
+        """    
+        tip = np.array(self.root.InstrumentCombined.VisuGuide.Quads.position[-1])
+        dist_vec = self.goal_pos-tip
+        proj_dist = np.dot(dist_vec,self.goal_dir)
+        plane_dist = np.sum((dist_vec - proj_dist*self.goal_dir)**2)
+        total_dist = np.sqrt(proj_dist**2 + plane_dist)
+        # current_dist = np.linalg.norm(np.array(tip)-np.array(self.goal_pos))
+        if (total_dist > self.distThreshold):
+            reward = 0
+        else:
+            reward = np.clip((self.distThreshold-proj_dist)/self.distThreshold,0,2)
+        print(reward)
+        return reward
 
     def update(self):
         """Update function.
@@ -260,10 +270,10 @@ def getReward(root):
         done, reward
 
     """
-    reward, cost = root.Reward.getReward()
+    reward = root.Reward.getReward()
 
-    if cost <= 5.0:
-        return True, 1.0
+    if reward >= 1.0:
+        return True, 2.0
 
     return False, reward
 

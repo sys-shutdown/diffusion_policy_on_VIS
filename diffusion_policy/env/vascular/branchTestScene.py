@@ -185,7 +185,7 @@ def createScene(root,
 
     # # SofaGym Env Toolbox
     root.addObject(StateInitializer(name="StateInitializer",rootNode=root))
-    root.addObject(RewardShaper(name="Reward", rootNode=root, goalPos=config['goalPos'], distThreshold=config['distThreshold']))
+    root.addObject(RewardShaper(name="Reward", rootNode=root, goalPos=config['goalPos'], goalDir=config['goalDir'], distThreshold=config['distThreshold']))
     root.addObject(GoalSetter(name="GoalSetter", rootNode=root, goal=goal, goalPos=config['goalPos']))
 
 

@@ -65,6 +65,7 @@ class branchEnv(gym.Env):
                       "source": [[300, 120, 0],[250, 160, 300]],
                       "target": [[0, 120, 0],[-50, 160, 0]],
                       'goalPos':None,
+                      "goalDir":None,
                       "rotY": 0,
                       "rotZ": 0,
                       "insertion": 0,
@@ -299,6 +300,8 @@ class branchEnv(gym.Env):
             self.goalPath = result
             self.randShift = np.random.randn(len(self.goalPath),3)*0.5
             config["goalPos"] = self.config["nodeVertices"][goal_idx]
+            dirVec = np.array(self.config["nodeVertices"][self.goalPath[-1]])-np.array(self.config["nodeVertices"][self.goalPath[-2]])
+            config["goalDir"] = dirVec / np.linalg.norm(dirVec) 
             config["rotY"] = rs.randint(*self.config["ryRange"])
             config["rotZ"] = rs.randint(*self.config["rzRange"])
             config["rotation"] = rs.rand()*(self.config["rotationRange"][1]-self.config["rotationRange"][0])+self.config["rotationRange"][0]
