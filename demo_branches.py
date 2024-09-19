@@ -13,8 +13,8 @@ def readInput(action,running):
     if success:
         while running.value==1:
             state = pyspacemouse.read()
-            action[0] = -state.pitch*2.0
-            action[1] = state.yaw*1.0
+            action[0] = -state.pitch*1.0
+            action[1] = state.yaw*0.5
             time.sleep(0.01)
 
 

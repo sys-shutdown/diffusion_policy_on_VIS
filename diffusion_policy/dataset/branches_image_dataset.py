@@ -98,7 +98,7 @@ def test():
     import os
     import cv2
     zarr_path = os.path.expanduser('../Data/TrainData/branches_demo3.zarr')
-    dataset = branchesImageDataset(zarr_path, horizon=1)
+    dataset = branchesImageDataset(zarr_path, horizon=32)
     for j in range(200):
         data = dataset.__getitem__(random.randint(0,dataset.__len__()-1))
         print(data['obs']['controllerState'])
@@ -106,7 +106,7 @@ def test():
             img = np.moveaxis(data['obs']['image'][i].numpy(),0,-1)
             # img = np.concatenate([np.moveaxis(data['obs']['image'][i].numpy(),0,-1),np.moveaxis(data['obs']['goalCond'][i].numpy(),0,-1)],axis=1)
             cv2.imshow('1',img)
-            cv2.waitKey(10)
+            cv2.waitKey(100)
     print("End")
     # from matplotlib import pyplot as plt
     # normalizer = dataset.get_normalizer()

@@ -8,12 +8,12 @@ checkpoint:
     mode: max
     monitor_key: test_mean_score
 dataloader:
-  batch_size: 2
-  num_workers: 1
+  batch_size: 32
+  num_workers: 8
   persistent_workers: false
   pin_memory: true
   shuffle: true
-dataset_obs_steps: 4
+dataset_obs_steps: 32
 ema:
   _target_: diffusion_policy.model.diffusion.ema_model.EMAModel
   inv_gamma: 1.0
@@ -22,7 +22,7 @@ ema:
   power: 0.75
   update_after_step: 0
 exp_name: default
-horizon: 12
+horizon: 32
 keypoint_visible_rate: 1.0
 logging:
   group: null
@@ -64,7 +64,7 @@ policy:
   - 1024
   - 2048
   eval_fixed_crop: true
-  horizon: 12
+  horizon: 32
   kernel_size: 5
   n_action_steps: 8
   n_groups: 8
@@ -114,9 +114,9 @@ shape_meta:
 task:
   dataset:
     _target_: diffusion_policy.dataset.branches_image_dataset.branchesImageDataset
-    horizon: 12
-    pad_after: 7
-    pad_before: 1
+    horizon: 32
+    pad_after: 0
+    pad_before: 0
     seed: 42
     val_ratio: 0.1
     zarr_path: ../Data/TrainData/branches_demo3.zarr
@@ -126,11 +126,11 @@ task:
     max_steps: 300
     n_action_steps: 8
     n_envs: null
-    n_obs_steps: 4
-    n_test: 2
+    n_obs_steps: 24
+    n_test: 6
     n_test_vis: 2
-    n_train: 1
-    n_train_vis: 1
+    n_train: 50
+    n_train_vis: 4
     past_action: false
     test_start_seed: 1000
     train_start_seed: 0
@@ -157,7 +157,7 @@ task:
 task_name: branches_image
 training:
   checkpoint_every: 10
-  debug: true
+  debug: false
   device: cuda:0
   gradient_accumulate_every: 1
   lr_scheduler: cosine
@@ -173,8 +173,8 @@ training:
   use_ema: true
   val_every: 1
 val_dataloader:
-  batch_size: 2
-  num_workers: 1
+  batch_size: 16
+  num_workers: 4
   persistent_workers: false
   pin_memory: true
   shuffle: false

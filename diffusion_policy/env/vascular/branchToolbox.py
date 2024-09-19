@@ -124,7 +124,6 @@ class RewardShaper(Sofa.Core.Controller):
             reward = 0
         else:
             reward = np.clip((self.distThreshold-proj_dist)/self.distThreshold,0,2)
-        print(reward)
         return reward
 
     def update(self):

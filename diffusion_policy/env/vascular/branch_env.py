@@ -70,7 +70,7 @@ class branchEnv(gym.Env):
                       "rotZ": 0,
                       "insertion": 0,
                       "start_node": None,
-                      "scale_factor": 5,
+                      "scale_factor": 10,
                       "dt": 0.01,
                       "timer_limit": 80,
                       "timeout": 50,
@@ -98,7 +98,7 @@ class branchEnv(gym.Env):
                       "rzRange":[-1,1],
                       "rotationRange":[-3.14,3.14],
                       "insertRange":[0,1],
-                      "orthoScale":0.25,
+                      "orthoScale":0.32,
                       "render_mode":"rgb_array",
                       }
 
@@ -112,8 +112,8 @@ class branchEnv(gym.Env):
         if config is not None:
             self.config.update(config)
         self.render_mode = self.config["render_mode"]
-        self.transScale = tS = 2.0
-        self.rotScale = rS = 1.0
+        self.transScale = tS = 1.0
+        self.rotScale = rS = 0.5
         self.action_space = spaces.Box(
             low=np.array([-tS,-rS], dtype=np.float64),
             high=np.array([tS,rS], dtype=np.float64),
