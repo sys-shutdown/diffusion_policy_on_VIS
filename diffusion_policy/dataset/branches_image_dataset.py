@@ -106,7 +106,7 @@ def test():
             img = np.moveaxis(data['obs']['image'][i].numpy(),0,-1)
             # img = np.concatenate([np.moveaxis(data['obs']['image'][i].numpy(),0,-1),np.moveaxis(data['obs']['goalCond'][i].numpy(),0,-1)],axis=1)
             cv2.imshow('1',img)
-            cv2.waitKey(100)
+            cv2.waitKey(10)
     print("End")
     # from matplotlib import pyplot as plt
     # normalizer = dataset.get_normalizer()
