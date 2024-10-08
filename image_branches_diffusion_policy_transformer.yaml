@@ -1,4 +1,4 @@
-_target_: diffusion_policy.workspace.train_diffusion_unet_hybrid_workspace.TrainDiffusionUnetHybridWorkspace
+_target_: diffusion_policy.workspace.train_diffusion_transformer_hybrid_workspace.TrainDiffusionTransformerHybridWorkspace
 checkpoint:
   save_last_ckpt: true
   save_last_snapshot: false
@@ -28,46 +28,42 @@ logging:
   group: null
   id: null
   mode: online
-  name: ${now:%Y.%m.%d_%H.%M.%S}_train_diffusion_unet_hybrid_branches_image
+  name: ${now:%Y.%m.%d_%H.%M.%S}_train_diffusion_transformer_hybrid_branches_image
   project: branches_diffusion_policy
   resume: true
   tags:
-  - train_diffusion_unet_hybrid
+  - train_diffusion_transformer_hybrid
   - vis_image
   - default
 multi_run:
-  run_dir: ../Data/TrainModels/2024.05.14/14.50.00_train_diffusion_unet_hybrid_vis_image
-  wandb_name_base: 2024.05.14_train_diffusion_unet_hybrid_vis_image
+  run_dir: ../Data/TrainModels/2024.05.14/14.50.00_train_diffusion_transformer_hybrid_vis_image
+  wandb_name_base: 2024.05.14_train_diffusion_transformer_hybrid_vis_image
 n_action_steps: 4
-n_latency_steps: 0
+n_latency_steps: 4
 n_obs_steps: 8
-name: train_diffusion_unet_hybrid
-obs_as_global_cond: true
+name: train_diffusion_transformer_hybrid
+obs_as_cond: true
 optimizer:
-  _target_: torch.optim.AdamW
   betas:
+  - 0.9
   - 0.95
-  - 0.999
-  eps: 1.0e-08
-  lr: 0.0001
-  weight_decay: 1.0e-06
+  learning_rate: 0.0001
+  obs_encoder_weight_decay: 1.0e-06
+  transformer_weight_decay: 0.001
 past_action_visible: false
 policy:
-  _target_: diffusion_policy.policy.diffusion_unet_hybrid_image_policy.DiffusionUnetHybridImagePolicy
-  cond_predict_scale: true
+  _target_: diffusion_policy.policy.diffusion_transformer_hybrid_image_policy.DiffusionTransformerHybridImagePolicy
+  causal_attn: true
   crop_shape:
   - 280
   - 280
-  diffusion_step_embed_dim: 512
-  down_dims:
-  - 128
-  - 256
-  - 512
   eval_fixed_crop: true
   horizon: 16
-  kernel_size: 5
   n_action_steps: 4
-  n_groups: 8
+  n_cond_layers: 0
+  n_emb: 256
+  n_head: 4
+  n_layer: 8
   n_obs_steps: 8
   noise_scheduler:
     _target_: diffusers.schedulers.scheduling_ddpm.DDPMScheduler
@@ -79,7 +75,7 @@ policy:
     prediction_type: epsilon
     variance_type: fixed_small
   num_inference_steps: 100
-  obs_as_global_cond: true
+  obs_as_cond: true
   obs_encoder_group_norm: true
   shape_meta:
     action:
