@@ -141,8 +141,8 @@ class RewardShaper(Sofa.Core.Controller):
 
         """
         tip = self.root.InstrumentCombined.DOFs.position[-1][:3]
-        self.init_dist = np.linalg.norm(np.array(tip)-np.array(self.goal_pos))
-        self.prev_dist = self.init_dist
+        # self.init_dist = np.linalg.norm(np.array(tip)-np.array(self.goal_pos))
+        # self.prev_dist = self.init_dist
 
 
 class GoalSetter(Sofa.Core.Controller):
@@ -269,12 +269,12 @@ def getReward(root):
         done, reward
 
     """
-    reward = root.Reward.getReward()
+    # reward = root.Reward.getReward()
 
-    if reward >= 1.0:
-        return True, 2.0
+    # if reward >= 1.0:
+    #     return True, 2.0
 
-    return False, reward
+    return False, 0
 
 
 def get_ircontroller_state(node, instrument=0):

@@ -66,7 +66,7 @@ if __name__ == '__main__':
             # print(act)
 
             state, reward, done, info = env.step(act)
-            print(state['controllerState'])
+            # print(state['controllerState']) 
             total_reward+=reward
 
 

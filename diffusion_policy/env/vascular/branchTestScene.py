@@ -16,8 +16,8 @@ def add_goal_node(root):
     return goal
 
 def createScene(root,
-                config={"source": [[300, 150, -300],[300, 150, 300]],
-                        "target": [[0, 150, 0],[0, 150, 0]],
+                config={"source": [[300, 150, -300]],
+                        "target": [[0, 150, 0]],
                         "goalPos": None,
                         "rotY": 0,
                         "rotZ": 0,
@@ -126,7 +126,7 @@ def createScene(root,
     #                      timeSteps=[0.04*i for i in range(25)], actions=[1 for i in range(25)]
     #                      )
     
-    instrument.addObject('InterventionalRadiologyController', template='Rigid3d', name='m_ircontroller', printLog=False, xtip=[90, 0], step=3, rotationInstrument=[0,config["rotation"]],
+    instrument.addObject('InterventionalRadiologyController', template='Rigid3d', name='m_ircontroller', printLog=False, xtip=[50, 0], step=3, rotationInstrument=[0,config["rotation"]],
                          controlledInstrument=1, startingPos=[0, 0, 0, 0.707, 0.0, 0.0, 0.707], speed=0, instruments=['InterpolCatheter','InterpolGuide'])
     
     
@@ -195,7 +195,6 @@ def createScene(root,
     spotloc = [source[0][0], source[0][1]+config["zFar"], 0]
     root.addObject("SpotLight", position=spotloc, direction=[0, -np.sign(source[0][1]), 0])
     root.addObject("InteractiveCamera", name="camera1", position=source[0], lookAt=target[0], zFar=config["zFar"])
-    root.addObject("InteractiveCamera", name="camera2", position=source[1], lookAt=target[1], zFar=config["zFar"])
     root.addObject(AnimationManagerController(root, name="AnimationManager"))
 
     return root

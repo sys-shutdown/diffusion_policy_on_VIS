@@ -33,20 +33,45 @@ def dfs(cur, goalIdx, path, graph, visited,result):
 
 
 class branchEnv(gym.Env):
+    branchModelPath = 'diffusion_policy/env/vascular/mesh/YTubeSkeleton.obj'
+    with open(branchModelPath) as file:
+        points = []
+        lines = []
+        line = file.readline()
+        while line:
+            strs = line.split(" ")
+            if strs[0] == "v":
+                points.append([float(strs[1]),float(strs[2]),float(strs[3])])
+            if strs[0] == "l":
+                lines.append([int(strs[1])-1,int(strs[2])-1])
+            line = file.readline()
+    goalList = list(range(len(points)))[1:] 
+    graph = dict()
+    for line in lines:
+        if line[0] in graph:
+            graph[line[0]] += [line[1]]
+        else:
+            graph[line[0]] = [line[1]]
+
+        if line[1] in graph:
+            graph[line[1]] += [line[0]]
+        else:
+            graph[line[1]] = [line[0]]  
+
     path = path = os.path.dirname(os.path.abspath(__file__))
     metadata = {'render.modes': ['human', 'rgb_array','dummy']}
     DEFAULT_CONFIG = {"scene": "VIS",
                       "deterministic": True,
                       #"source": [[300, 150, -300],[300, 150, 300]],
-                      "source": [[300, 140, 0]],
-                      "target": [[0, 140, 0]],
+                      "source": [[300, 120, 0],[250, 160, 300]],
+                      "target": [[0, 120, 0],[-50, 160, 0]],
                       'goalPos':None,
                       "goalDir":None,
                       "rotY": 0,
                       "rotZ": 0,
                       "insertion": 0,
                       "start_node": None,
-                      "scale_factor": 1,
+                      "scale_factor": 10,
                       "dt": 0.01,
                       "timer_limit": 80,
                       "timeout": 50,
@@ -65,12 +90,16 @@ class branchEnv(gym.Env):
                       "scale": 10,
                       "rotation": [0.0, 0.0, 0.0],
                       "translation": [0.0, 0.0, 0.0],
+                      "nodeVertices": points,
+                      "nodeLines": lines,
+                      "nodeGraph": graph,
                       "startNode": 0,
+                      "goalList": goalList,
                       "ryRange":[-1,1],
                       "rzRange":[-1,1],
                       "rotationRange":[-3.14,3.14],
                       "insertRange":[0,1],
-                      "orthoScale":0.25,
+                      "orthoScale":0.32,
                       "render_mode":"rgb_array",
                       }
 
@@ -147,12 +176,11 @@ class branchEnv(gym.Env):
     def _get_obs(self,mode="rgb_array"):
         if(mode=="dummy"):
             return dict()
-        image, prompt = self._render_frame(mode)
+        image = self._render_frame(mode)
         controllerState = np.array(get_ircontroller_state(self.root.InstrumentCombined,1))
         obs = {
             'image':image,
-            'controllerState':controllerState,
-            'prompt':prompt,
+            'controllerState':controllerState
         }
         # cv2.imshow("1",obs['image1'])
         # cv2.imshow("2",obs['image2'])
@@ -213,17 +241,17 @@ class branchEnv(gym.Env):
             Sofa.SofaGL.draw(self.root)
 
             glViewport(self.surface_size[0], 0, self.surface_size[0], self.surface_size[1])
-            # glColor3f(0.0, 1.0, 0.0)
-            # glLineWidth(4.0)
-            # glBegin(GL_LINES)
-            # vert0 = self.config["nodeVertices"][self.goalPath[0]]+self.randShift[0]
-            # for i in range(len(self.goalPath)-1):
-            #     node1 =  self.goalPath[i+1]
-            #     vert1 = self.config["nodeVertices"][node1]+self.randShift[i+1]
-            #     glVertex3f(*vert0)
-            #     glVertex3f(*vert1)
-            #     vert0 = vert1.copy()
-            # glEnd()
+            glColor3f(0.0, 1.0, 0.0)
+            glLineWidth(4.0)
+            glBegin(GL_LINES)
+            vert0 = self.config["nodeVertices"][self.goalPath[0]]+self.randShift[0]
+            for i in range(len(self.goalPath)-1):
+                node1 =  self.goalPath[i+1]
+                vert1 = self.config["nodeVertices"][node1]+self.randShift[i+1]
+                glVertex3f(*vert0)
+                glVertex3f(*vert1)
+                vert0 = vert1.copy()
+            glEnd()
 
             glColor3f(1.0, 1.0, 0.0)
             glPointSize(10.0)
@@ -270,10 +298,10 @@ class branchEnv(gym.Env):
             
             # image1 = np.concatenate([visual_layer[...,0:1],prompt_layer[...,1:2],visual_layer[...,2:]],axis=-1)
             image = image[:,:,(2,1,0)]
-            cv2.imshow("observation",image)
+            cv2.imshow("obervation",image)
             cv2.waitKey(10)
             pygame.display.flip()
-        return visual_layer, screen_coords
+        return image
 
     def reset(self):
 
@@ -284,6 +312,16 @@ class branchEnv(gym.Env):
 
             rs = np.random.RandomState(seed=self._seed)
             config = dict()
+            goal_idx = self.config["goalList"][rs.randint(len(self.config["goalList"]))]
+            visited = [False for i in range(len(self.config["nodeVertices"]))]
+            result = []
+            path = [self.config["startNode"]]
+            dfs(self.config["startNode"],goal_idx,path,self.config["nodeGraph"],visited,result)
+            self.goalPath = result
+            self.randShift = np.random.randn(len(self.goalPath),3)*0.5
+            config["goalPos"] = self.config["nodeVertices"][goal_idx]
+            dirVec = np.array(self.config["nodeVertices"][self.goalPath[-1]])-np.array(self.config["nodeVertices"][self.goalPath[-2]])
+            config["goalDir"] = dirVec / np.linalg.norm(dirVec) 
             config["rotY"] = rs.randint(*self.config["ryRange"])
             config["rotZ"] = rs.randint(*self.config["rzRange"])
             config["rotation"] = rs.rand()*(self.config["rotationRange"][1]-self.config["rotationRange"][0])+self.config["rotationRange"][0]

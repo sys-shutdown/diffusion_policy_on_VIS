@@ -13,8 +13,8 @@ def readInput(action,running):
     if success:
         while running.value==1:
             state = pyspacemouse.read()
-            action[0] = -state.pitch*2.0
-            action[1] = state.yaw*1.0
+            action[0] = -state.pitch*1.0
+            action[1] = state.yaw*0.5
             time.sleep(0.01)
 
 
@@ -36,7 +36,7 @@ if __name__ == '__main__':
     p1 = multiprocessing.Process(target=readInput,args=(action,running))
     p1.start()
 
-    output = "../Data/TrainData/branches_demo.zarr"
+    output = "../Data/TrainData/branches_demo3.zarr"
     replay_buffer = ReplayBuffer.create_from_path(output, mode='a')
 
 
@@ -54,21 +54,12 @@ if __name__ == '__main__':
         env.render()
         total_reward = 0
         step_idx = 0
-        record_start = False
-        record_end = False
-        while not record_end:
+        while not done:
             for event in pygame.event.get():
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_r:
                         # press "R" to retry
                         retry=True
-                    elif event.key == pygame.K_s:
-                        if not record_start:
-                            record_start = True
-                            print("Start recording...")
-                        else:
-                            record_end = True
-                            print("Saving...")
                     elif event.key == pygame.K_q:
                         # press "Q" to exit
                         exit(0)
@@ -80,9 +71,13 @@ if __name__ == '__main__':
 
             act = np.array([action[0],action[1]])
             
-            state, reward, done, info = env.step(act)
+            if control_start is False:
+                if abs(act[0])>start_threshold or abs(act[1])>start_threshold:
+                    control_start = True
+
             
-            if record_start:
+            if control_start:
+                state, reward, done, info = env.step(act)
                 print(f'step: {step_idx},\t action: {act},\t state: {state["controllerState"]}')
                 step_idx+=1
                 total_reward+=reward
@@ -90,7 +85,6 @@ if __name__ == '__main__':
                     'image': state['image'],
                     # 'goalCond': state['goalCond'],
                     'controllerState': state['controllerState'],
-                    'prompt': state['prompt'],
                     'action': np.float32(act),
                 }
                 episode.append(data)

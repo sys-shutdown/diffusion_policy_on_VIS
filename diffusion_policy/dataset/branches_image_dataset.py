@@ -23,7 +23,7 @@ class branchesImageDataset(BaseImageDataset):
         
         super().__init__()
         self.replay_buffer = ReplayBuffer.copy_from_path(
-            zarr_path, keys=['image', 'controllerState','action'])
+            zarr_path, keys=['image', 'controllerState','action','prompt'])
         val_mask = get_val_mask(
             n_episodes=self.replay_buffer.n_episodes, 
             val_ratio=val_ratio,
@@ -60,7 +60,8 @@ class branchesImageDataset(BaseImageDataset):
     def get_normalizer(self, mode='limits', **kwargs):
         data = {
             'action': self.replay_buffer['action'],
-            'controllerState': self.replay_buffer['controllerState']
+            'controllerState': self.replay_buffer['controllerState'],
+            'prompt': self.replay_buffer['prompt']
         }
         normalizer = LinearNormalizer()
         normalizer.fit(data=data, last_n_dims=1, mode=mode, **kwargs)
@@ -76,11 +77,13 @@ class branchesImageDataset(BaseImageDataset):
         image = np.moveaxis(sample['image'],-1,1)/255
         # goalCond = np.moveaxis(sample['goalCond'],-1,1)/255
         controllerState = sample['controllerState'].astype(np.float32)
+        prompt = sample['prompt'].astype(np.float32)
         data = {
             'obs': {
                 'image': image, # T, 3, 300, 300
                 # 'goalCond': goalCond,
                 'controllerState': controllerState, #T, 2
+                'prompt': prompt, #T,2
             },
             'action': sample['action'].astype(np.float32) # T, 2
         }
@@ -97,13 +100,17 @@ def test():
     import random
     import os
     import cv2
-    zarr_path = os.path.expanduser('../Data/TrainData/branches_demo3.zarr')
+    zarr_path = os.path.expanduser('../Data/TrainData/branches_demo.zarr')
     dataset = branchesImageDataset(zarr_path, horizon=32)
     for j in range(200):
         data = dataset.__getitem__(random.randint(0,dataset.__len__()-1))
-        print(data['obs']['controllerState'])
         for i in range(len(data['obs']['image'])):
+            coords = data['obs']['prompt'][i]
             img = np.moveaxis(data['obs']['image'][i].numpy(),0,-1)
+            xcoord = img.shape[0]*coords[0]
+            ycoord = img.shape[1]*coords[1]
+            print(f"xcoord:{xcoord},\tycoord:{ycoord}")
+            img[int(ycoord)][int(xcoord)] = np.array([0,0,255])
             # img = np.concatenate([np.moveaxis(data['obs']['image'][i].numpy(),0,-1),np.moveaxis(data['obs']['goalCond'][i].numpy(),0,-1)],axis=1)
             cv2.imshow('1',img)
             cv2.waitKey(10)
