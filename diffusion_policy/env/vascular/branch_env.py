@@ -113,6 +113,12 @@ class branchEnv(gym.Env):
                     shape=(2,),
                     dtype=np.float64
             ),  
+            'prompt':spaces.Box(
+                    low=0,
+                    high=1,
+                    shape=(2,),
+                    dtype=np.float32
+                ),
         })
         self.screen = None
         self.render_cache = None
@@ -238,8 +244,8 @@ class branchEnv(gym.Env):
             vert = self.root.InstrumentCombined.VisuGuide.Quads.position[-1].copy().astype(np.float64)
             screen_coords = gluProject(vert[0], vert[1], vert[2], modelViewMatrix, projectionMatrix, viewport)
             screen_coords = np.array(screen_coords[:-1])
-            screen_coords[0] = (screen_coords[0]-self.surface_size[0])/self.surface_size[0]
-            screen_coords[1] = (self.surface_size[1]-screen_coords[1])/self.surface_size[1]
+            screen_coords[0] = np.clip((screen_coords[0]-self.surface_size[0])/self.surface_size[0],0,1)
+            screen_coords[1] = np.clip((self.surface_size[1]-screen_coords[1])/self.surface_size[1],0,1)
             print(f"Screen coordinates: {screen_coords}")
             glVertex3f(*vert)
             glEnd()
@@ -263,8 +269,8 @@ class branchEnv(gym.Env):
         prompt_layer = image[:,self.surface_size[0]:]
         self.imgQue.put(visual_layer)
         if(self.imgQue.full()):
-            visual_last = self.imgQue.get()
-            image = cv2.addWeighted(visual_last, 1.0, prompt_layer, 0.5, 0)
+            visual_layer = self.imgQue.get()
+            image = cv2.addWeighted(visual_layer, 1.0, prompt_layer, 0.5, 0)
         # glfw.swap_buffers(self.screen)
         if mode == "human":
             

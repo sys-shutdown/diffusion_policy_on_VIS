@@ -4,7 +4,7 @@ checkpoint:
   save_last_snapshot: false
   topk:
     format_str: epoch={epoch:04d}-test_mean_score={test_mean_score:.3f}.ckpt
-    k: 3
+    k: 10
     mode: max
     monitor_key: test_mean_score
 dataloader:
@@ -38,9 +38,9 @@ logging:
 multi_run:
   run_dir: ../Data/TrainModels/2024.05.14/14.50.00_train_diffusion_unet_hybrid_vis_image
   wandb_name_base: 2024.05.14_train_diffusion_unet_hybrid_vis_image
-n_action_steps: 4
+n_action_steps: 8
 n_latency_steps: 0
-n_obs_steps: 8
+n_obs_steps: 2
 name: train_diffusion_unet_hybrid
 obs_as_global_cond: true
 optimizer:
@@ -56,8 +56,8 @@ policy:
   _target_: diffusion_policy.policy.diffusion_unet_hybrid_image_policy.DiffusionUnetHybridImagePolicy
   cond_predict_scale: true
   crop_shape:
-  - 280
-  - 280
+  - 298
+  - 298
   diffusion_step_embed_dim: 512
   down_dims:
   - 128
@@ -66,9 +66,9 @@ policy:
   eval_fixed_crop: true
   horizon: 16
   kernel_size: 5
-  n_action_steps: 4
+  n_action_steps: 8
   n_groups: 8
-  n_obs_steps: 8
+  n_obs_steps: 2
   noise_scheduler:
     _target_: diffusers.schedulers.scheduling_ddpm.DDPMScheduler
     beta_end: 0.02
@@ -92,6 +92,10 @@ policy:
         - 300
         - 300
         type: rgb
+      prompt:
+        shape:
+        - 2
+        type: low_dim
       # controllerState:
       #   shape:
       #   - 2
@@ -107,6 +111,10 @@ shape_meta:
       - 300
       - 300
       type: rgb
+    prompt:
+      shape:
+      - 2
+      type: low_dim
     # controllerState:
     #   shape:
     #   - 2
@@ -119,14 +127,14 @@ task:
     pad_before: 0
     seed: 42
     val_ratio: 0.1
-    zarr_path: ../Data/TrainData/branches_demo3.zarr
+    zarr_path: ../Data/TrainData/branches_demo.zarr
   env_runner:
     _target_: diffusion_policy.env_runner.branches_image_runner.branchesImageRunner
     fps: 10
     max_steps: 300
-    n_action_steps: 4
+    n_action_steps: 8
     n_envs: null
-    n_obs_steps: 8
+    n_obs_steps: 2
     n_test: 8
     n_test_vis: 4
     n_train: 12
@@ -150,23 +158,27 @@ task:
         - 300
         - 300
         type: rgb
+      prompt:
+        shape:
+        - 2
+        type: low_dim
       # controllerState:
       #   shape:
       #   - 2
       #   type: low_dim
 task_name: branches_image
 training:
-  checkpoint_every: 10
+  checkpoint_every: 20
   debug: false
   device: cuda:0
   gradient_accumulate_every: 1
   lr_scheduler: cosine
-  lr_warmup_steps: 500
+  lr_warmup_steps: 50
   max_train_steps: null
   max_val_steps: null
-  num_epochs: 1000
+  num_epochs: 200
   resume: true
-  rollout_every: 10
+  rollout_every: 20
   sample_every: 1
   seed: 42
   tqdm_interval_sec: 1.0
