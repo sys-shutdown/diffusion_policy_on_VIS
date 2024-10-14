@@ -36,6 +36,7 @@ class branchEnv(gym.Env):
     path = path = os.path.dirname(os.path.abspath(__file__))
     metadata = {'render.modes': ['human', 'rgb_array','dummy']}
     DEFAULT_CONFIG = {"scene": "VIS",
+                      "eval": False,
                       "deterministic": True,
                       #"source": [[300, 150, -300],[300, 150, 300]],
                       "source": [[300, 140, 0]],
@@ -246,7 +247,6 @@ class branchEnv(gym.Env):
             screen_coords = np.array(screen_coords[:-1])
             screen_coords[0] = np.clip((screen_coords[0]-self.surface_size[0])/self.surface_size[0],0,1)
             screen_coords[1] = np.clip((self.surface_size[1]-screen_coords[1])/self.surface_size[1],0,1)
-            print(f"Screen coordinates: {screen_coords}")
             glVertex3f(*vert)
             glEnd()
             # glLoadIdentity()
@@ -275,10 +275,13 @@ class branchEnv(gym.Env):
         if mode == "human":
             
             # image1 = np.concatenate([visual_layer[...,0:1],prompt_layer[...,1:2],visual_layer[...,2:]],axis=-1)
+            if self.config['eval']:
+                image = visual_layer
             image = image[:,:,(2,1,0)]
             cv2.imshow("observation",image)
             cv2.waitKey(10)
             pygame.display.flip()
+        
         return visual_layer, screen_coords
 
     def reset(self):

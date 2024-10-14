@@ -4,7 +4,7 @@ checkpoint:
   save_last_snapshot: false
   topk:
     format_str: epoch={epoch:04d}-test_mean_score={test_mean_score:.3f}.ckpt
-    k: 10
+    k: 5
     mode: max
     monitor_key: test_mean_score
 dataloader:
@@ -13,7 +13,7 @@ dataloader:
   persistent_workers: false
   pin_memory: true
   shuffle: true
-dataset_obs_steps: 8
+dataset_obs_steps: 2
 ema:
   _target_: diffusion_policy.model.diffusion.ema_model.EMAModel
   inv_gamma: 1.0
@@ -22,7 +22,7 @@ ema:
   power: 0.75
   update_after_step: 0
 exp_name: default
-horizon: 16
+horizon: 32
 keypoint_visible_rate: 1.0
 logging:
   group: null
@@ -38,7 +38,7 @@ logging:
 multi_run:
   run_dir: ../Data/TrainModels/2024.05.14/14.50.00_train_diffusion_unet_hybrid_vis_image
   wandb_name_base: 2024.05.14_train_diffusion_unet_hybrid_vis_image
-n_action_steps: 8
+n_action_steps: 32
 n_latency_steps: 0
 n_obs_steps: 2
 name: train_diffusion_unet_hybrid
@@ -64,9 +64,9 @@ policy:
   - 256
   - 512
   eval_fixed_crop: true
-  horizon: 16
+  horizon: 32
   kernel_size: 5
-  n_action_steps: 8
+  n_action_steps: 32
   n_groups: 8
   n_obs_steps: 2
   noise_scheduler:
@@ -75,10 +75,10 @@ policy:
     beta_schedule: squaredcos_cap_v2
     beta_start: 0.0001
     clip_sample: true
-    num_train_timesteps: 100
+    num_train_timesteps: 20
     prediction_type: epsilon
     variance_type: fixed_small
-  num_inference_steps: 100
+  num_inference_steps: 20
   obs_as_global_cond: true
   obs_encoder_group_norm: true
   shape_meta:
@@ -122,7 +122,7 @@ shape_meta:
 task:
   dataset:
     _target_: diffusion_policy.dataset.branches_image_dataset.branchesImageDataset
-    horizon: 16
+    horizon: 32
     pad_after: 0
     pad_before: 0
     seed: 42
@@ -132,13 +132,13 @@ task:
     _target_: diffusion_policy.env_runner.branches_image_runner.branchesImageRunner
     fps: 10
     max_steps: 300
-    n_action_steps: 8
+    n_action_steps: 32
     n_envs: null
     n_obs_steps: 2
-    n_test: 8
-    n_test_vis: 4
-    n_train: 12
-    n_train_vis: 6
+    n_test: 1
+    n_test_vis: 1
+    n_train: 1
+    n_train_vis: 1
     past_action: false
     test_start_seed: 1000
     train_start_seed: 0
@@ -168,17 +168,17 @@ task:
       #   type: low_dim
 task_name: branches_image
 training:
-  checkpoint_every: 20
-  debug: false
+  checkpoint_every: 10
+  debug: False
   device: cuda:0
   gradient_accumulate_every: 1
   lr_scheduler: cosine
-  lr_warmup_steps: 50
+  lr_warmup_steps: 10
   max_train_steps: null
   max_val_steps: null
-  num_epochs: 200
+  num_epochs: 50
   resume: true
-  rollout_every: 20
+  rollout_every: 10
   sample_every: 1
   seed: 42
   tqdm_interval_sec: 1.0
