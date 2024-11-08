@@ -46,7 +46,7 @@ if __name__ == '__main__':
         control_start = False
         retry = False
         done = False
-        env.seed()
+        env.seed(2)
         env.reset()
         total_reward = 0
         while not done:

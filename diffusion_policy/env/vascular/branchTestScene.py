@@ -24,6 +24,7 @@ def createScene(root,
                         "rotation": 1.57,
                         "insertion": 0,
                         "zFar":4000,
+                        "vessel_model":"YTube.stl",
                         "distThreshold":500,
                         "dt": 0.01},
                 mode='simu_and_visu'):
@@ -100,8 +101,9 @@ def createScene(root,
 
     ## Guide
     guide = root.addChild('topoLines_guide')
-    guide.addObject('RodStraightSection', name="StraightSection", youngModulus="10000", nbEdgesCollis="50", nbEdgesVisu="196", length="240.0")
-    guide.addObject('RodSpireSection', name="SpireSection", youngModulus="10000", nbEdgesCollis="20", nbEdgesVisu="10", length="30.0", spireDiameter="40", spireHeight="0.0")
+    guide.addObject('RodStraightSection', name="StraightSection", youngModulus="1000", nbEdgesCollis="10", nbEdgesVisu="196", length="240.0")
+    # guide.addObject('RodSpireSection', name="StraightSection", youngModulus="1000", nbEdgesCollis="20", nbEdgesVisu="196", length="240.0", spireDiameter="1000", spireHeight="0.0")
+    guide.addObject('RodSpireSection', name="SpireSection", youngModulus="1000", nbEdgesCollis="50", nbEdgesVisu="50", length="200.0", spireDiameter="150", spireHeight="0.0")
     guide.addObject('WireRestShape', template="Rigid3d", name="GuideRestShape", wireMaterials="@StraightSection @SpireSection")
     guide.addObject('EdgeSetTopologyContainer', name='meshLinesGuide')
     guide.addObject('EdgeSetTopologyModifier', name='Modifier')
@@ -113,7 +115,7 @@ def createScene(root,
     instrument = root.addChild('InstrumentCombined')
     instrument.addObject('EulerImplicitSolver', rayleighStiffness=0.2, rayleighMass=0.1, printLog=False)
     instrument.addObject('BTDLinearSolver', subpartSolve=True, verification=False, verbose=False)
-    instrument.addObject('RegularGridTopology', name='meshLinesCombined', nx=180, ny=1, nz=1, xmin=0.0, xmax=1.0, ymin=0.0, ymax=0.0, zmin=1, zmax=1)
+    instrument.addObject('RegularGridTopology', name='meshLinesCombined', nx=200, ny=1, nz=1, xmin=0.0, xmax=1.0, ymin=0.0, ymax=0.0, zmin=1, zmax=1)
     instrument.addObject('MechanicalObject', template='Rigid3d', name='DOFs', showIndices=False,ry=0,rz=90)
     
     instrument.addObject('WireBeamInterpolation', name='InterpolCatheter', WireRestShape='@../topoLines_cath/catheterRestShape', radius=1.5, printLog=False)
@@ -126,7 +128,7 @@ def createScene(root,
     #                      timeSteps=[0.04*i for i in range(25)], actions=[1 for i in range(25)]
     #                      )
     
-    instrument.addObject('InterventionalRadiologyController', template='Rigid3d', name='m_ircontroller', printLog=False, xtip=[50, 0], step=3, rotationInstrument=[0,config["rotation"]],
+    instrument.addObject('InterventionalRadiologyController', template='Rigid3d', name='m_ircontroller', printLog=False, xtip=[20, 0], step=3, rotationInstrument=[0,config["rotation"]],
                          controlledInstrument=1, startingPos=[0, 0, 0, 0.707, 0.0, 0.0, 0.707], speed=0, instruments=['InterpolCatheter','InterpolGuide'])
     
     
@@ -172,7 +174,7 @@ def createScene(root,
 
     # Collision
     collision = root.addChild('CollisionModel') 
-    collision.addObject('MeshSTLLoader', name='meshLoader', filename=path+'YTube.stl', triangulate=True, flipNormals=True)
+    collision.addObject('MeshSTLLoader', name='meshLoader', filename=path+config['vessel_model'], triangulate=True, flipNormals=True)
     collision.addObject('MeshTopology', position='@meshLoader.position', triangles='@meshLoader.triangles')
     collision.addObject('MechanicalObject', name='DOFs1')
     collision.addObject('TriangleCollisionModel', simulated=False, moving=True)

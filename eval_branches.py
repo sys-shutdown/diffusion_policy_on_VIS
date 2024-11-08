@@ -25,7 +25,7 @@ def readInput(action,running):
 
 
 if __name__ == '__main__':
-    checkpoint = "../Data/TrainModels/2024.10.12/14.11.05_train_diffusion_unet_hybrid_branches_image/checkpoints/epoch=0020-test_mean_score=0.000.ckpt"
+    checkpoint = "../Data/TrainModels/2024.10.25/15.39.54_train_diffusion_unet_hybrid_branches_image/checkpoints/epoch=0090-test_mean_score=0.000.ckpt"
     output_dir = "../Data/EvalOutPut/branches"
     device = "cuda:1"
     payload = torch.load(open(checkpoint, 'rb'), pickle_module=dill)
@@ -59,7 +59,7 @@ if __name__ == '__main__':
     p1.start()
 
     start_threshold = 0.001 
-    seed = 1
+    seed = 2
     print(f'starting seed {seed}')
     env.seed(seed)
     env.reset()

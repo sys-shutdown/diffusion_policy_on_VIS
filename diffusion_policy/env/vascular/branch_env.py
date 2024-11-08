@@ -39,8 +39,8 @@ class branchEnv(gym.Env):
                       "eval": False,
                       "deterministic": True,
                       #"source": [[300, 150, -300],[300, 150, 300]],
-                      "source": [[300, 140, 0]],
-                      "target": [[0, 140, 0]],
+                      "source": [[300, 100, 0]],
+                      "target": [[0, 100, 0]],
                       'goalPos':None,
                       "goalDir":None,
                       "rotY": 0,
@@ -73,6 +73,7 @@ class branchEnv(gym.Env):
                       "insertRange":[0,1],
                       "orthoScale":0.25,
                       "render_mode":"rgb_array",
+                      "vessel_model":"YTube.stl",
                       }
 
     def __init__(self,config=None,randInit=False):
@@ -297,6 +298,7 @@ class branchEnv(gym.Env):
             config["rotZ"] = rs.randint(*self.config["rzRange"])
             config["rotation"] = rs.rand()*(self.config["rotationRange"][1]-self.config["rotationRange"][0])+self.config["rotationRange"][0]
             config["insertion"] = rs.randint(*self.config["insertRange"])
+            config["vessel_model"] = "Meshs/" + str(rs.randint(1,100)) + ".stl"
             self.config.update(config)
 
 

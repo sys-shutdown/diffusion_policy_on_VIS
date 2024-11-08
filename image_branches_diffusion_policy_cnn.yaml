@@ -4,7 +4,7 @@ checkpoint:
   save_last_snapshot: false
   topk:
     format_str: epoch={epoch:04d}-test_mean_score={test_mean_score:.3f}.ckpt
-    k: 5
+    k: 10
     mode: max
     monitor_key: test_mean_score
 dataloader:
@@ -60,9 +60,9 @@ policy:
   - 298
   diffusion_step_embed_dim: 512
   down_dims:
-  - 128
   - 256
   - 512
+  - 1024
   eval_fixed_crop: true
   horizon: 32
   kernel_size: 5
@@ -75,10 +75,10 @@ policy:
     beta_schedule: squaredcos_cap_v2
     beta_start: 0.0001
     clip_sample: true
-    num_train_timesteps: 20
+    num_train_timesteps: 100
     prediction_type: epsilon
     variance_type: fixed_small
-  num_inference_steps: 20
+  num_inference_steps: 10
   obs_as_global_cond: true
   obs_encoder_group_norm: true
   shape_meta:
@@ -127,7 +127,7 @@ task:
     pad_before: 0
     seed: 42
     val_ratio: 0.1
-    zarr_path: ../Data/TrainData/branches_demo.zarr
+    zarr_path: ../Data/TrainData/branches_demo4.zarr
   env_runner:
     _target_: diffusion_policy.env_runner.branches_image_runner.branchesImageRunner
     fps: 10
@@ -176,7 +176,7 @@ training:
   lr_warmup_steps: 10
   max_train_steps: null
   max_val_steps: null
-  num_epochs: 50
+  num_epochs: 100
   resume: true
   rollout_every: 10
   sample_every: 1
