@@ -14,6 +14,7 @@ import SofaRuntime
 import pygame
 from OpenGL.GL import *
 from OpenGL.GLU import *
+from queue import Queue
 
 from diffusion_policy.env.vascular.VISToolbox import getReward, startCmd, get_ircontroller_state
 from diffusion_policy.env.vascular.VISScene import createScene
@@ -23,20 +24,21 @@ class VISEnv(gym.Env):
     path = path = os.path.dirname(os.path.abspath(__file__))
     metadata = {'render.modes': ['human', 'rgb_array','dummy']}
     DEFAULT_CONFIG = {"scene": "VIS",
+                      "eval": False,
                       "deterministic": True,
                       #"source": [[300, 150, -300],[300, 150, 300]],
-                      "source": [[250, 160, -300],[250, 160, 300]],
-                      "target": [[0, 160, 0],[-50, 160, 0]],
-                      'goalPos':[-5.0, 250.0, 50.0],
+                      "source": [[240, 240, 300]],
+                      "target": [[-60, 240, 0]],
+                      'goalPos':None,
                       "rotY": 0,
                       "rotZ": 0,
                       "insertion": 0,
                       "start_node": None,
-                      "scale_factor": 3,
+                      "scale_factor": 1,
                       "dt": 0.01,
                       "timer_limit": 80,
                       "timeout": 50,
-                      "display_size": (150, 300),
+                      "display_size": (300, 300),
                       "render": 0,
                       "save_data": False,
                       "save_image": False,
@@ -55,7 +57,7 @@ class VISEnv(gym.Env):
                       "ryRange":[-15,15],
                       "rzRange":[-15,15],
                       "insertRange":[0,80],
-                      "orthoScale":0.6,
+                      "orthoScale":0.24,
                       "render_mode":"rgb_array",
                       }
 
@@ -67,34 +69,40 @@ class VISEnv(gym.Env):
         if config is not None:
             self.config.update(config)
         self.render_mode = self.config["render_mode"]
-        self.transScale = tS = 5.0
-        self.rotScale = rS = 5.0
+        self.transScale = tS = 4.0
+        self.rotScale = rS = 2.0
         self.action_space = spaces.Box(
             low=np.array([-tS,-rS], dtype=np.float64),
             high=np.array([tS,rS], dtype=np.float64),
             shape=(2,),
             dtype=np.float64
         )
-        
+        self.imgQue = Queue(maxsize=32)
         self.observation_space = spaces.Dict({
-            'image1':spaces.Box(
+            'image':spaces.Box(
                     low=0,
                     high=1,
                     shape=(3,self.config["display_size"][0],self.config["display_size"][1]),
                     dtype=np.float32
                 ),
-            'image2':spaces.Box(
-                    low=0,
-                    high=1,
-                    shape=(3,self.config["display_size"][0],self.config["display_size"][1]),
-                    dtype=np.float32
-                ),
+            # 'image2':spaces.Box(
+            #         low=0,
+            #         high=1,
+            #         shape=(3,self.config["display_size"][0],self.config["display_size"][1]),
+            #         dtype=np.float32
+            #     ),
             'controllerState':spaces.Box(
-                    low=np.array([0,-100,0,-100], dtype=np.float64),
-                    high=np.array([400,100,400,100], dtype=np.float64),
-                    shape=(4,),
+                    low=np.array([0,-20], dtype=np.float64),
+                    high=np.array([400,20], dtype=np.float64),
+                    shape=(2,),
                     dtype=np.float64
             ),  
+            'prompt':spaces.Box(
+                    low=0,
+                    high=1,
+                    shape=(2,),
+                    dtype=np.float32
+                ),  
         })
         self.screen = None
         self.render_cache = None
@@ -129,13 +137,13 @@ class VISEnv(gym.Env):
     def _get_obs(self,mode="rgb_array"):
         if(mode=="dummy"):
             return dict()
-        image = self._render_frame(mode)
-        controllerState = np.array(get_ircontroller_state(self.root.InstrumentCombined,0)+get_ircontroller_state(self.root.InstrumentCombined,1))
-
+        image, prompt = self._render_frame(mode)
+        controllerState = np.array(get_ircontroller_state(self.root.InstrumentCombined,1))
         obs = {
-            'image1':image[:,0:self.surface_size[0],:],
-            'image2':image[:,self.surface_size[0]:,:],
-            'controllerState':controllerState
+            'image':image,
+            # 'image2':image[:,self.surface_size[0]:,:],
+            'controllerState':controllerState,
+            'prompt':prompt,
         }
         # cv2.imshow("1",obs['image1'])
         # cv2.imshow("2",obs['image2'])
@@ -194,31 +202,54 @@ class VISEnv(gym.Env):
             cameraMVM = self.root.camera1.getOpenGLModelViewMatrix()
             glMultMatrixd(cameraMVM)
             Sofa.SofaGL.draw(self.root)
-            glLoadIdentity()
-            cameraMVM = self.root.camera2.getOpenGLModelViewMatrix()
-            glMultMatrixd(cameraMVM)
+
             glViewport(self.surface_size[0], 0, self.surface_size[0], self.surface_size[1])
-            Sofa.SofaGL.draw(self.root)
+            glColor3f(1.0, 1.0, 0.0)
+            glPointSize(10.0)
+            modelViewMatrix = np.array(glGetDoublev(GL_MODELVIEW_MATRIX), dtype=np.float64)
+            projectionMatrix = np.array(glGetDoublev(GL_PROJECTION_MATRIX), dtype=np.float64)
+            viewport = np.array(glGetIntegerv(GL_VIEWPORT), dtype=np.int32)
+            glBegin(GL_POINTS)
+            # self.traj[:-1] = self.traj[1:]
+            # self.traj[-1] = self.root.InstrumentCombined.VisuGuide.Quads.position[-1].copy()
+            # for vert in self.traj:
+            #     glVertex3f(*vert)
+            vert = self.root.InstrumentCombined.VisuGuide.Quads.position[-1].copy().astype(np.float64)
+            screen_coords = gluProject(vert[0], vert[1], vert[2], modelViewMatrix, projectionMatrix, viewport)
+            screen_coords = np.array(screen_coords[:-1])
+            screen_coords[0] = np.clip((screen_coords[0]-self.surface_size[0])/self.surface_size[0],0,1)
+            screen_coords[1] = np.clip((self.surface_size[1]-screen_coords[1])/self.surface_size[1],0,1)
+            glVertex3f(*vert)
+            glEnd()
         try:
             x, y, width, height = glGetIntegerv(GL_VIEWPORT)
         except:
             width, height = self.surface_size[0], self.surface_size[1]
         buff = glReadPixels(0, 0, width*2, height, GL_RGB, GL_UNSIGNED_BYTE)
-
         image_array = np.fromstring(buff, np.uint8)
         if image_array.shape != (0,):
             image = image_array.reshape(self.surface_size[1], self.surface_size[0]*2, 3)
         else:
             image = np.zeros((self.surface_size[1], self.surface_size[0]*2, 3))
         image = np.flipud(image)
-        
+        visual_layer = image[:,:self.surface_size[0]]
+        prompt_layer = image[:,self.surface_size[0]:]
+        self.imgQue.put(visual_layer)
+        if(self.imgQue.full()):
+            visual_layer = self.imgQue.get()
+            image = cv2.addWeighted(visual_layer, 1.0, prompt_layer, 0.5, 0)
         # glfw.swap_buffers(self.screen)
         if mode == "human":
-            # image = image[:,:,(2,1,0)]
-            # cv2.imshow("obervation",image)
-            # cv2.waitKey(10)
+            
+            # image1 = np.concatenate([visual_layer[...,0:1],prompt_layer[...,1:2],visual_layer[...,2:]],axis=-1)
+            if self.config['eval']:
+                image = visual_layer
+            image = image[:,:,(2,1,0)]
+            cv2.imshow("observation",image)
+            cv2.waitKey(10)
             pygame.display.flip()
-        return image
+        
+        return visual_layer, screen_coords
 
     def reset(self):
 
@@ -226,7 +257,7 @@ class VISEnv(gym.Env):
         if self.randInit:
             rs = np.random.RandomState(seed=self._seed)
             config = dict()
-            config["goalPos"] = self.config["goalList"][rs.randint(len(self.config['goalList']))]
+            # config["goalPos"] = self.config["goalList"][rs.randint(len(self.config['goalList']))]
             config["rotY"] = rs.randint(*self.config["ryRange"])
             config["rotZ"] = rs.randint(*self.config["rzRange"])
             config["insertion"] = rs.randint(*self.config["insertRange"])

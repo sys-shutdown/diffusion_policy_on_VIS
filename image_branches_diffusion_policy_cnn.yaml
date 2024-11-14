@@ -169,7 +169,7 @@ task:
 task_name: branches_image
 training:
   checkpoint_every: 10
-  debug: False
+  debug: True
   device: cuda:0
   gradient_accumulate_every: 1
   lr_scheduler: cosine

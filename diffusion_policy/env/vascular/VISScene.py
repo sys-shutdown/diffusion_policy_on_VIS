@@ -194,7 +194,7 @@ def createScene(root,
     spotloc = [0, source[0][1]+config["zFar"], 0]
     root.addObject("SpotLight", position=spotloc, direction=[0, -np.sign(source[0][1]), 0])
     root.addObject("InteractiveCamera", name="camera1", position=source[0], lookAt=target[0], zFar=config["zFar"])
-    root.addObject("InteractiveCamera", name="camera2", position=source[1], lookAt=target[1], zFar=config["zFar"])
+    # root.addObject("InteractiveCamera", name="camera2", position=source[1], lookAt=target[1], zFar=config["zFar"])
     root.addObject(AnimationManagerController(root, name="AnimationManager"))
 
     return root
