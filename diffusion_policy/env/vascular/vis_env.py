@@ -245,6 +245,8 @@ class VISEnv(gym.Env):
             if self.config['eval']:
                 image = visual_layer
             image = image[:,:,(2,1,0)]
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+            image = 255 - image
             cv2.imshow("observation",image)
             cv2.waitKey(10)
             pygame.display.flip()

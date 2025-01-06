@@ -1,0 +1,179 @@
+_target_: diffusion_policy.workspace.train_diffusion_unet_hybrid_workspace.TrainDiffusionUnetHybridWorkspace
+checkpoint:
+  save_last_ckpt: true
+  save_last_snapshot: false
+  topk:
+    format_str: epoch={epoch:04d}-val_loss={val_loss:.3f}.ckpt
+    k: 10
+    mode: min
+    monitor_key: val_loss
+dataloader:
+  batch_size: 32
+  num_workers: 4
+  persistent_workers: false
+  pin_memory: true
+  shuffle: true
+dataset_obs_steps: 2
+ema:
+  _target_: diffusion_policy.model.diffusion.ema_model.EMAModel
+  inv_gamma: 1.0
+  max_value: 0.9999
+  min_value: 0.0
+  power: 0.75
+  update_after_step: 0
+exp_name: default
+horizon: 32
+keypoint_visible_rate: 1.0
+logging:
+  group: null
+  id: null
+  mode: online
+  name: ${now:%Y.%m.%d_%H.%M.%S}_train_diffusion_unet_hybrid_realworld_vis_image
+  project: realworld_vis_diffusion_policy
+  resume: false
+  tags:
+  - train_diffusion_unet_hybrid
+  - vis_image
+  - default
+multi_run:
+  run_dir: ../Data/TrainModels/2024.12.31/14.50.00_train_diffusion_unet_hybrid_realworld_vis_image
+  wandb_name_base: 2024.12.31_train_diffusion_unet_hybrid_realworld_vis_image
+n_action_steps: 32
+n_latency_steps: 0
+n_obs_steps: 2
+name: train_diffusion_unet_hybrid
+obs_as_global_cond: true
+optimizer:
+  _target_: torch.optim.AdamW
+  betas:
+  - 0.95
+  - 0.999
+  eps: 1.0e-08
+  lr: 0.0001
+  weight_decay: 1.0e-06
+past_action_visible: false
+policy:
+  _target_: diffusion_policy.policy.diffusion_unet_hybrid_image_policy.DiffusionUnetHybridImagePolicy
+  cond_predict_scale: true
+  crop_shape:
+  - 510
+  - 510
+  diffusion_step_embed_dim: 512
+  down_dims:
+  - 256
+  - 512
+  - 1024
+  eval_fixed_crop: true
+  horizon: 32
+  kernel_size: 5
+  n_action_steps: 32
+  n_groups: 8
+  n_obs_steps: 2
+  noise_scheduler:
+    _target_: diffusers.schedulers.scheduling_ddpm.DDPMScheduler
+    beta_end: 0.02
+    beta_schedule: squaredcos_cap_v2
+    beta_start: 0.0001
+    clip_sample: true
+    num_train_timesteps: 100
+    prediction_type: epsilon
+    variance_type: fixed_small
+  num_inference_steps: 10
+  obs_as_global_cond: true
+  obs_encoder_group_norm: true
+  shape_meta:
+    action:
+      shape:
+      - 2
+    obs:
+      image:
+        shape:
+        - 1
+        - 512
+        - 512
+        type: rgb
+      prompt:
+        shape:
+        - 2
+        type: low_dim
+      # controllerState:
+      #   shape:
+      #   - 2
+      #   type: low_dim
+shape_meta:
+  action:
+    shape:
+    - 2
+  obs:
+    image:
+      shape:
+      - 1
+      - 512
+      - 512
+      type: rgb
+    prompt:
+      shape:
+      - 2
+      type: low_dim
+    # controllerState:
+    #   shape:
+    #   - 2
+    #   type: low_dim
+task:
+  dataset:
+    _target_: diffusion_policy.dataset.realworld_vis_dataset.realWorldVISImageDataset
+    horizon: 32
+    pad_after: 0
+    pad_before: 0
+    seed: 42
+    val_ratio: 0.05
+    zarr_path: ../Data/TrainData/RealWorld/Experiment_2024_12_27.zarr
+  env_runner:
+    _target_: diffusion_policy.env_runner.real_pusht_image_runner.RealPushTImageRunner
+  image_shape:
+  - 512
+  - 512
+  name: vis_image
+  shape_meta:
+    action:
+      shape:
+      - 2
+    obs:
+      image:
+        shape:
+        - 1
+        - 512
+        - 512
+        type: rgb
+      prompt:
+        shape:
+        - 2
+        type: low_dim
+      # controllerState:
+      #   shape:
+      #   - 2
+      #   type: low_dim
+task_name: vis_image
+training:
+  checkpoint_every: 10
+  debug: False
+  device: cuda:0
+  gradient_accumulate_every: 1
+  lr_scheduler: cosine
+  lr_warmup_steps: 10
+  max_train_steps: null
+  max_val_steps: null
+  num_epochs: 100
+  resume: true
+  rollout_every: 10
+  sample_every: 1
+  seed: 42
+  tqdm_interval_sec: 1.0
+  use_ema: true
+  val_every: 2
+val_dataloader:
+  batch_size: 16
+  num_workers: 2
+  persistent_workers: false
+  pin_memory: true
+  shuffle: false

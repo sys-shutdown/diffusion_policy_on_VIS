@@ -25,7 +25,7 @@ def readInput(action,running):
 
 
 if __name__ == '__main__':
-    checkpoint = "../Data/TrainModels/2024.11.11/11.37.25_train_diffusion_unet_hybrid_vis_image/checkpoints/epoch=0070-test_mean_score=0.000.ckpt"
+    checkpoint = "../Data/TrainModels/2024.11.11/11.37.25_train_diffusion_unet_hybrid_vis_image/checkpoints/epoch=0030-test_mean_score=0.000.ckpt"
     output_dir = "../Data/EvalOutPut/branches"
     device = "cuda:1"
     payload = torch.load(open(checkpoint, 'rb'), pickle_module=dill)
