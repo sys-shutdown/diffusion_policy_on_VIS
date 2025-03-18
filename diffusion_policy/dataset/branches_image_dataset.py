@@ -23,7 +23,7 @@ class branchesImageDataset(BaseImageDataset):
         
         super().__init__()
         self.replay_buffer = ReplayBuffer.copy_from_path(
-            zarr_path, keys=['image', 'controllerState','action','prompt'])
+            zarr_path, keys=['image','action','prompt'])
         val_mask = get_val_mask(
             n_episodes=self.replay_buffer.n_episodes, 
             val_ratio=val_ratio,
@@ -60,7 +60,7 @@ class branchesImageDataset(BaseImageDataset):
     def get_normalizer(self, mode='limits', **kwargs):
         data = {
             'action': self.replay_buffer['action'],
-            'controllerState': self.replay_buffer['controllerState'],
+            # 'controllerState': self.replay_buffer['controllerState'],
             'prompt': self.replay_buffer['prompt']
         }
         normalizer = LinearNormalizer()
@@ -76,16 +76,18 @@ class branchesImageDataset(BaseImageDataset):
         
         image = np.moveaxis(sample['image'],-1,1)/255
         # goalCond = np.moveaxis(sample['goalCond'],-1,1)/255
-        controllerState = sample['controllerState'].astype(np.float32)
+        # controllerState = sample['controllerState'].astype(np.float32)
         prompt = sample['prompt'].astype(np.float32)
+        action = sample['action'].astype(np.float32)
         data = {
             'obs': {
                 'image': image, # T, 3, 300, 300
                 # 'goalCond': goalCond,
-                'controllerState': controllerState, #T, 2
-                'prompt': prompt, #T,2
+                # 'controllerState': controllerState, #T, 2
+                'prompt': prompt, #T, 2
+                'action': action, #T, 2
             },
-            'action': sample['action'].astype(np.float32) # T, 2
+            'action': action, #T, 2
         }
         return data
     
@@ -112,8 +114,8 @@ def test():
             print(f"xcoord:{xcoord},\tycoord:{ycoord}")
             img[int(ycoord)][int(xcoord)] = np.array([0,0,255])
             # img = np.concatenate([np.moveaxis(data['obs']['image'][i].numpy(),0,-1),np.moveaxis(data['obs']['goalCond'][i].numpy(),0,-1)],axis=1)
-            cv2.imshow('1',img)
-            cv2.waitKey(10)
+            # cv2.imshow('1',img)
+            # cv2.waitKey(10)
     print("End")
     # from matplotlib import pyplot as plt
     # normalizer = dataset.get_normalizer()

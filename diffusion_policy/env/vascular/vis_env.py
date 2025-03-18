@@ -27,8 +27,8 @@ class VISEnv(gym.Env):
                       "eval": False,
                       "deterministic": True,
                       #"source": [[300, 150, -300],[300, 150, 300]],
-                      "source": [[240, 240, 300]],
-                      "target": [[-60, 240, 0]],
+                      "source": [[240, 180, 300]],
+                      "target": [[-60, 180, 0]],
                       'goalPos':None,
                       "rotY": 0,
                       "rotZ": 0,
@@ -91,24 +91,26 @@ class VISEnv(gym.Env):
             #         shape=(3,self.config["display_size"][0],self.config["display_size"][1]),
             #         dtype=np.float32
             #     ),
-            'controllerState':spaces.Box(
-                    low=np.array([0,-20], dtype=np.float64),
-                    high=np.array([400,20], dtype=np.float64),
-                    shape=(2,),
-                    dtype=np.float64
-            ),  
+            # 'controllerState':spaces.Box(
+            #         low=np.array([0,-20], dtype=np.float64),
+            #         high=np.array([400,20], dtype=np.float64),
+            #         shape=(2,),
+            #         dtype=np.float64
+            # ),  
             'prompt':spaces.Box(
                     low=0,
                     high=1,
                     shape=(2,),
                     dtype=np.float32
-                ),  
+                ), 
+            'action':self.action_space,  
         })
         self.screen = None
         self.render_cache = None
         self.root = None
         self.surface_size = self.config['display_size']
         self.zFar = self.config['zFar']
+        self.last_action = np.zeros((2,),dtype=np.float64)
 
     def init_simulation(self,config,mode="simu_and_visu"):
         root = Sofa.Core.Node("root")
@@ -142,8 +144,9 @@ class VISEnv(gym.Env):
         obs = {
             'image':image,
             # 'image2':image[:,self.surface_size[0]:,:],
-            'controllerState':controllerState,
+            # 'controllerState':controllerState,
             'prompt':prompt,
+            'action':self.last_action,
         }
         # cv2.imshow("1",obs['image1'])
         # cv2.imshow("2",obs['image2'])
@@ -161,6 +164,7 @@ class VISEnv(gym.Env):
         obs = self._get_obs(self.config["render_mode"])
         done, reward = getReward(self.root)
         info = {}
+        self.last_action = action
         return obs, reward, done, info
 
     def render(self, mode="rgb_array"):
@@ -237,7 +241,8 @@ class VISEnv(gym.Env):
         self.imgQue.put(visual_layer)
         if(self.imgQue.full()):
             visual_layer = self.imgQue.get()
-            image = cv2.addWeighted(visual_layer, 1.0, prompt_layer, 0.5, 0)
+            # image = cv2.addWeighted(visual_layer, 1.0, prompt_layer, 0.5, 0)
+            image = visual_layer
         # glfw.swap_buffers(self.screen)
         if mode == "human":
             
@@ -245,8 +250,8 @@ class VISEnv(gym.Env):
             if self.config['eval']:
                 image = visual_layer
             image = image[:,:,(2,1,0)]
-            image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-            image = 255 - image
+            # image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+            # image = 255 - image
             cv2.imshow("observation",image)
             cv2.waitKey(10)
             pygame.display.flip()

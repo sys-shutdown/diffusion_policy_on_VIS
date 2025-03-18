@@ -271,7 +271,8 @@ class branchEnv(gym.Env):
         self.imgQue.put(visual_layer)
         if(self.imgQue.full()):
             visual_layer = self.imgQue.get()
-            image = cv2.addWeighted(visual_layer, 1.0, prompt_layer, 0.5, 0)
+            image = visual_layer
+            # image = cv2.addWeighted(visual_layer, 1.0, prompt_layer, 0.5, 0)
         # glfw.swap_buffers(self.screen)
         if mode == "human":
             

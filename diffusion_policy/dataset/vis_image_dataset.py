@@ -97,7 +97,7 @@ def test():
     import random
     import os
     import cv2
-    zarr_path = os.path.expanduser('../Data/TrainData/vis_demo2.zarr')
+    zarr_path = os.path.expanduser('../Data/TrainData/vis_demo.zarr')
     dataset = VISImageDataset(zarr_path, horizon=16)
     for j in range(200):
         data = dataset.__getitem__(random.randint(0,dataset.__len__()-1))

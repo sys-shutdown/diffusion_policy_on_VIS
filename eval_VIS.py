@@ -25,7 +25,7 @@ def readInput(action,running):
 
 
 if __name__ == '__main__':
-    checkpoint = "../Data/TrainModels/2024.11.11/11.37.25_train_diffusion_unet_hybrid_vis_image/checkpoints/epoch=0030-test_mean_score=0.000.ckpt"
+    checkpoint = "../Data/TrainModels/2025.03.10/16.46.43_train_diffusion_unet_hybrid_vis_image/checkpoints/epoch=0070-test_mean_score=0.000.ckpt"
     output_dir = "../Data/EvalOutPut/branches"
     device = "cuda:1"
     payload = torch.load(open(checkpoint, 'rb'), pickle_module=dill)
@@ -67,7 +67,9 @@ if __name__ == '__main__':
     total_reward = 0
     step_idx = 0
     obs_dict = dict()
-    imgSeq = np.zeros((2,300,300,3),dtype=np.uint8)
+    imgSeq = np.zeros((16,300,300,3),dtype=np.uint8)
+    actions = np.zeros((16,2),dtype=np.float64)
+    prompt = np.zeros((16,2),dtype=np.float64)
     ASSIST = False
     while True:
         for event in pygame.event.get():
@@ -82,31 +84,34 @@ if __name__ == '__main__':
                     ASSIST = not ASSIST
         if ASSIST:
             coords = pygame.mouse.get_pos()
-            prompt = np.tile(np.array([coords[0]/300,coords[1]/300]),(2,1))
-            print(prompt)
+            prompt = np.linspace(prompt[-1],np.array([coords[0]/300,coords[1]/300]),16)
+            # print(prompt)
             image = np.moveaxis(imgSeq,-1,1)/255
-            np_obs_dict = {"image":np.expand_dims(image,axis=0),"prompt":np.expand_dims(prompt,axis=0)}
+            np_obs_dict = {"image":np.expand_dims(image,axis=0),"prompt":np.expand_dims(prompt,axis=0),"action":np.expand_dims(actions,axis=0)}
             # device transfer
             obs_dict = dict_apply(np_obs_dict, 
                 lambda x: torch.from_numpy(x).to(
                     device=device))
             # run policy
+            ts = time.time()
             with torch.no_grad():
                 action_dict = policy.predict_action(obs_dict)
             # device_transfer
             np_action_dict = dict_apply(action_dict,
                 lambda x: x.detach().to('cpu').numpy())
             actions = np_action_dict['action'][0]
-            # print(actions)
+            t_cost = time.time()-ts
+            print(t_cost)
+            print(actions)
             for act in actions:
                 state, reward, done, info = env.step(act)
-                imgSeq[0]=imgSeq[1]
-                imgSeq[1]=state['image']
+                imgSeq[:-1]=imgSeq[1:]
+                imgSeq[-1]=state['image']
         else:
         # handle control flow
             act = np.array([action[0],action[1]])
             
             state, reward, done, info = env.step(act)
-            imgSeq[0]=imgSeq[1]
-            imgSeq[1]=state['image']
+            imgSeq[:-1]=imgSeq[1:]
+            imgSeq[-1]=state['image']
         

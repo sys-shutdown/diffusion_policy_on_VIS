@@ -25,7 +25,7 @@ if __name__ == '__main__':
     running = multiprocessing.Value("b",1)
     env_name = "branches-v0"
     config = {
-        "display_size": (800, 800),
+        "display_size": (1600, 1600),
         "orthoScale":0.1,
         "scale_factor": 1,
         "render_mode":"human",
@@ -46,7 +46,7 @@ if __name__ == '__main__':
         control_start = False
         retry = False
         done = False
-        env.seed(2)
+        env.seed(3)
         env.reset()
         total_reward = 0
         while not done:

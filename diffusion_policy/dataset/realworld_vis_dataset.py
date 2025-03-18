@@ -1,5 +1,6 @@
 from typing import Dict
 import torch
+from torchvision import transforms
 import numpy as np
 import copy
 from diffusion_policy.common.pytorch_util import dict_apply
@@ -18,7 +19,7 @@ class realWorldVISImageDataset(BaseImageDataset):
             pad_after=0,
             seed=42,
             val_ratio=0.0,
-            max_train_episodes=None
+            max_train_episodes=None,
             ):
         
         super().__init__()
@@ -44,6 +45,7 @@ class realWorldVISImageDataset(BaseImageDataset):
         self.horizon = horizon
         self.pad_before = pad_before
         self.pad_after = pad_after
+        self.transform1 = transforms.ColorJitter(brightness=(0.5,1.5))
 
     def get_validation_dataset(self):
         val_set = copy.copy(self)
@@ -76,11 +78,18 @@ class realWorldVISImageDataset(BaseImageDataset):
         image = np.moveaxis(sample['image'],-1,1)/255
         # goalCond = np.moveaxis(sample['goalCond'],-1,1)/255
         prompt = sample['prompt'].astype(np.float32)
+        
+        # random crop
+        bias = np.random.randint((0,0),(image.shape[-2]-400,image.shape[-1]-400))
+        image = image[:,:,bias[1]:400+bias[1],bias[0]:400+bias[0]]
+        prompt -= bias
+        prompt /= 400
+        
         data = {
             'obs': {
-                'image': image, # T, 1, 300, 300
+                'image': image, # T, 1, 400, 400
                 # 'goalCond': goalCond,
-                'prompt': prompt, #T,2
+                'prompt': prompt, # T, 2
             },
             'action': sample['action'].astype(np.float32) # T, 2
         }
@@ -90,6 +99,7 @@ class realWorldVISImageDataset(BaseImageDataset):
         sample = self.sampler.sample_sequence(idx)
         data = self._sample_to_data(sample)
         torch_data = dict_apply(data, torch.from_numpy)
+        torch_data['obs']['image'] = self.transform1(torch_data['obs']['image'])
         return torch_data
 
 
@@ -97,7 +107,7 @@ def test():
     import random
     import os
     import cv2
-    zarr_path = os.path.expanduser('../Data/TrainData/RealWorld/Experiment_2024_12_27.zarr')
+    zarr_path = os.path.expanduser('../Data/TrainData/RealWorld/Experiment_2025_03_13.zarr')
     dataset = realWorldVISImageDataset(zarr_path, horizon=32)
     for j in range(200):
         data = dataset.__getitem__(random.randint(0,dataset.__len__()-1))
@@ -107,7 +117,7 @@ def test():
             xcoord = img.shape[0]*coords[0]
             ycoord = img.shape[1]*coords[1]
             print(f"xcoord:{xcoord},\tycoord:{ycoord}")
-            img[int(ycoord)][int(xcoord)] = 0
+            img[int(ycoord)][int(xcoord)] = 1
             # img = np.concatenate([np.moveaxis(data['obs']['image'][i].numpy(),0,-1),np.moveaxis(data['obs']['goalCond'][i].numpy(),0,-1)],axis=1)
             cv2.imshow('1',img)
             cv2.waitKey(10)

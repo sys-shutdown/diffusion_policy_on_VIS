@@ -25,8 +25,8 @@ if __name__ == '__main__':
     running = multiprocessing.Value("b",1)
     env_name = "vis-v0"
     config = {
-        "display_size": (400, 400),
-        "orthoScale":0.2,
+        "display_size": (1600, 1600),
+        "orthoScale":0.08,
         "scale_factor": 1,
         "render_mode":"human",
     }
