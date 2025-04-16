@@ -277,12 +277,11 @@ class branchEnv(gym.Env):
         if mode == "human":
             
             # image1 = np.concatenate([visual_layer[...,0:1],prompt_layer[...,1:2],visual_layer[...,2:]],axis=-1)
-            if self.config['eval']:
-                image = visual_layer
-            image = image[:,:,(2,1,0)]
-            cv2.imshow("observation",image)
-            cv2.waitKey(10)
-            pygame.display.flip()
+            if not self.config['eval']:
+                image = image[:,:,(2,1,0)]
+                cv2.imshow("observation",image)
+                cv2.waitKey(10)
+                pygame.display.flip()
         
         return visual_layer, screen_coords
 

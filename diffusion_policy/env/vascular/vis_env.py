@@ -27,8 +27,8 @@ class VISEnv(gym.Env):
                       "eval": False,
                       "deterministic": True,
                       #"source": [[300, 150, -300],[300, 150, 300]],
-                      "source": [[240, 180, 300]],
-                      "target": [[-60, 180, 0]],
+                      "source": [[240, 200, 300]],
+                      "target": [[-60, 200, 0]],
                       'goalPos':None,
                       "rotY": 0,
                       "rotZ": 0,
@@ -241,14 +241,15 @@ class VISEnv(gym.Env):
         self.imgQue.put(visual_layer)
         if(self.imgQue.full()):
             visual_layer = self.imgQue.get()
-            # image = cv2.addWeighted(visual_layer, 1.0, prompt_layer, 0.5, 0)
-            image = visual_layer
+            image = cv2.addWeighted(visual_layer, 1.0, prompt_layer, 0.5, 0)
+            # image = visual_layer
         # glfw.swap_buffers(self.screen)
         if mode == "human":
             
             # image1 = np.concatenate([visual_layer[...,0:1],prompt_layer[...,1:2],visual_layer[...,2:]],axis=-1)
             if self.config['eval']:
                 image = visual_layer
+                # image = cv2.addWeighted(visual_layer, 1.0, prompt_layer, 0.5, 0)
             image = image[:,:,(2,1,0)]
             # image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
             # image = 255 - image

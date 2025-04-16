@@ -83,8 +83,10 @@ class realWorldVISImageDataset(BaseImageDataset):
         bias = np.random.randint((0,0),(image.shape[-2]-400,image.shape[-1]-400))
         image = image[:,:,bias[1]:400+bias[1],bias[0]:400+bias[0]]
         prompt -= bias
+        prompt += 8*np.random.randn(*prompt.shape)
         prompt /= 400
-        
+        prompt = np.clip(prompt,0.0,1.0)
+
         data = {
             'obs': {
                 'image': image, # T, 1, 400, 400

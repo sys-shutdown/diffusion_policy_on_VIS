@@ -12,6 +12,7 @@ from diffusion_policy.workspace.base_workspace import BaseWorkspace
 from diffusion_policy.env.vascular.branch_env import branchEnv
 from diffusion_policy.common.replay_buffer import ReplayBuffer
 from diffusion_policy.common.pytorch_util import dict_apply
+import cv2
 
 def readInput(action,running):
     success = pyspacemouse.open()
@@ -23,6 +24,20 @@ def readInput(action,running):
             time.sleep(0.01)
 
 
+def drawPoint(visu,coords,size=3):
+    border = visu.shape
+    pointRange = [coords[0]-size,coords[0]+size,coords[1]-size,coords[1]+size]
+    if pointRange[0] < 0:
+        pointRange[0] = 0
+    if pointRange[1] > border[0]:
+        pointRange[1] = border[0]
+    if pointRange[2] < 0:
+        pointRange[2] = 0
+    if pointRange[3] > border[1]:
+        pointRange[3] = border[1]
+    color = [255,255,0]
+    visu[pointRange[2]:pointRange[3],pointRange[0]:pointRange[1]] = color
+    return visu
 
 if __name__ == '__main__':
     checkpoint = "../Data/TrainModels/2024.10.25/15.39.54_train_diffusion_unet_hybrid_branches_image/checkpoints/epoch=0090-test_mean_score=0.000.ckpt"
@@ -100,6 +115,11 @@ if __name__ == '__main__':
         # print(actions)
         for act in actions:
             state, reward, done, info = env.step(act)
+            visu = state['image'][:,:,(2,1,0)]
+            drawPoint(visu,coords)
+            cv2.imshow("observation2",visu)
+            cv2.waitKey(10)
+            pygame.display.flip()
             imgSeq[0]=imgSeq[1]
             imgSeq[1]=state['image']
         # handle control flow
@@ -109,4 +129,5 @@ if __name__ == '__main__':
         # state, reward, done, info = env.step(act)
         # imgSeq[0]=imgSeq[1]
         # imgSeq[1]=state['image']
+
         
