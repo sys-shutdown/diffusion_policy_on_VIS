@@ -5,7 +5,7 @@ import time
 import pygame
 import pyspacemouse
 import multiprocessing
-from diffusion_policy.env.vascular.vis_env import VISEnv
+from diffusion_policy.env.vascular.vessel_env import VesselEnv
 
 
 def readInput(action,running):
@@ -13,9 +13,8 @@ def readInput(action,running):
     if success:
         while running.value==1:
             state = pyspacemouse.read()
-            print(state)
-            action[0] = -state.pitch*5.0
-            action[1] = state.yaw*5.0
+            action[0] = -state.pitch*4.0
+            action[1] = state.yaw*4.0
             time.sleep(0.01)
 
 
@@ -26,12 +25,12 @@ if __name__ == '__main__':
     running = multiprocessing.Value("b",1)
     env_name = "vis-v0"
     config = {
-        "display_size": (100, 100),
-        "orthoScale": 0.08,
+        "display_size": (1800, 1800),
+        "orthoScale": 0.15,
         "scale_factor": 1,
         "render_mode":"human",
     }
-    env = VISEnv(config,randInit=True)
+    env = VesselEnv(config,randInit=True)
 
     print("Start env ", env_name)
 

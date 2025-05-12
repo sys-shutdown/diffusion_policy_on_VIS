@@ -269,10 +269,10 @@ def getReward(root):
         done, reward
 
     """
-    # reward = root.Reward.getReward()
+    reward = root.Reward.getReward()
 
-    # if reward >= 1.0:
-    #     return True, 2.0
+    if reward >= 1.0:
+        return True, 2.0
 
     return False, 0
 

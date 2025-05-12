@@ -18,7 +18,7 @@ class segNode:
 
 if __name__ == "__main__":
     import open3d as o3d
-    filePath = 'diffusion_policy/env/vascular/mesh/branchSkeleton.obj'
+    filePath = 'diffusion_policy/env/vascular/mesh/VesselSkeleton.obj'
 
     with open(filePath) as file:
         points = []
