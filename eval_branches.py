@@ -74,7 +74,7 @@ if __name__ == '__main__':
     p1.start()
 
     start_threshold = 0.001 
-    seed = 2
+    seed = 10
     print(f'starting seed {seed}')
     env.seed(seed)
     env.reset()

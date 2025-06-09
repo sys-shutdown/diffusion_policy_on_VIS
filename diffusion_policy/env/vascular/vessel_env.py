@@ -118,7 +118,7 @@ class VesselEnv(gym.Env):
             'image':spaces.Box(
                     low=0,
                     high=1,
-                    shape=(3,self.config["display_size"][0],self.config["display_size"][1]),
+                    shape=(3,self.config["obs_size"][0],self.config["obs_size"][1]),
                     dtype=np.float32
                 ),
             # 'prompt':spaces.Box(
@@ -162,7 +162,7 @@ class VesselEnv(gym.Env):
         self.np_random = np.random.default_rng(seed)
         
     
-    def _get_obs(self,mode="rgb_array"):
+    def _get_obs(self,mode="rgb_array"): 
         if(mode=="dummy"):
             return dict()
         image = self._render_frame(mode)
@@ -211,7 +211,7 @@ class VesselEnv(gym.Env):
 
                 self.screen = pygame.display.set_mode((self.surface_size[0]*2,self.surface_size[1]), pygame.OPENGL | pygame.DOUBLEBUF | pygame.HIDDEN)
         
-        glViewport(0, 0, self.surface_size[0], self.surface_size[1])
+        glViewport(0, 0, self.surface_size[0], self.surface_size[1]) # 画面大小
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         glEnable(GL_LIGHTING)
         glEnable(GL_DEPTH_TEST)
@@ -227,8 +227,8 @@ class VesselEnv(gym.Env):
             glLoadIdentity()
 
             cameraMVM = self.root.camera1.getOpenGLModelViewMatrix()
-            glMultMatrixd(cameraMVM)
-            Sofa.SofaGL.draw(self.root)
+            glMultMatrixd(cameraMVM) # 调整相机视角
+            Sofa.SofaGL.draw(self.root) # SOFA的渲染函数
             glViewport(self.surface_size[0], 0, self.surface_size[0], self.surface_size[1])
             glColor3f(0.0, 1.0, 0.0)
             glLineWidth(4.0)

@@ -6,8 +6,9 @@ import pathlib
 import tqdm
 import dill
 import math
+import pygame
 import wandb.sdk.data_types.video as wv
-from diffusion_policy.env.pusht.pusht_image_env import PushTImageEnv
+from diffusion_policy.env.vascular.vessel_env import VesselEnv
 from diffusion_policy.gym_util.async_vector_env import AsyncVectorEnv
 from diffusion_policy.gym_util.sync_vector_env import SyncVectorEnv
 from diffusion_policy.gym_util.multistep_wrapper import MultiStepWrapper
@@ -17,22 +18,20 @@ from diffusion_policy.policy.base_image_policy import BaseImagePolicy
 from diffusion_policy.common.pytorch_util import dict_apply
 from diffusion_policy.env_runner.base_image_runner import BaseImageRunner
 
-class PushTImageRunner(BaseImageRunner):
+class vesselImageRunner(BaseImageRunner):
     def __init__(self,
             output_dir,
-            n_train=10, # 训练环境数量
-            n_train_vis=3, # 可视化训练环境数量
-            train_start_seed=0, # 训练环境起始随机种子
-            n_test=22, # 测试环境数量
-            n_test_vis=6, # 可视化测试环境数量
-            legacy_test=False,
-            test_start_seed=10000, # 测试环境起始随机种子
-            max_steps=200, # 任务最大执行步数
-            n_obs_steps=8,  # 观测步数（模型输入）
-            n_action_steps=8, # 动作步数 （模型输出）
-            fps=10, # 帧率
-            crf=22, # 编码质量
-            render_size=96, # 渲染图像大小
+            n_train=1,
+            n_train_vis=1,
+            train_start_seed=0,
+            n_test=1,
+            n_test_vis=1,
+            test_start_seed=10000,
+            max_steps=500,
+            n_obs_steps=16,
+            n_action_steps=8,
+            fps=10,
+            crf=18,
             past_action=False,
             tqdm_interval_sec=5.0,
             n_envs=None
@@ -42,13 +41,31 @@ class PushTImageRunner(BaseImageRunner):
             n_envs = n_train + n_test
 
         steps_per_render = max(10 // fps, 1)
-        def env_fn():
+        def dummy_env_fn():
             return MultiStepWrapper(
                 VideoRecordingWrapper(
-                    PushTImageEnv(
-                        legacy=legacy_test,
-                        render_size=render_size
+                    VesselEnv({"render_mode":"dummy"}),
+                    video_recoder=VideoRecorder.create_h264(
+                        fps=fps,
+                        codec='h264',
+                        input_pix_fmt='rgb24',
+                        crf=crf,
+                        thread_type='FRAME',
+                        thread_count=1
                     ),
+                    file_path=None,
+                    steps_per_render=steps_per_render
+                ),
+                n_obs_steps=n_obs_steps,
+                n_action_steps=n_action_steps,
+                max_episode_steps=max_steps
+            )
+
+        def env_fn():
+            pygame.display.init()
+            return MultiStepWrapper(
+                VideoRecordingWrapper(
+                    VesselEnv(randInit=True),
                     video_recoder=VideoRecorder.create_h264(
                         fps=fps,
                         codec='h264',
@@ -121,7 +138,8 @@ class PushTImageRunner(BaseImageRunner):
             env_prefixs.append('test/')
             env_init_fn_dills.append(dill.dumps(init_fn))
 
-        env = SyncVectorEnv(env_fns)
+        # env = SyncVectorEnv(env_fns)
+        env = AsyncVectorEnv(env_fns,dummy_env_fn=dummy_env_fn)
 
         # test env
         # env.reset(seed=env_seeds)
@@ -178,7 +196,7 @@ class PushTImageRunner(BaseImageRunner):
             past_action = None
             policy.reset()
 
-            pbar = tqdm.tqdm(total=self.max_steps, desc=f"Eval PushtImageRunner {chunk_idx+1}/{n_chunks}", 
+            pbar = tqdm.tqdm(total=self.max_steps, desc=f"Eval vesselImageRunner {chunk_idx+1}/{n_chunks}", 
                 leave=False, mininterval=self.tqdm_interval_sec)
             done = False
             while not done:
